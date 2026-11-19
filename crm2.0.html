@@ -1,0 +1,3162 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventas · Construcción & Herramientas</title>
+<script>
+(function(){ try { var t = localStorage.getItem('crm_theme_v4'); document.documentElement.setAttribute('data-theme', t || 'dark'); } catch(e){} })();
+</script>
+<style>
+/* ===================== THEME ===================== */
+:root[data-theme="dark"]{
+  --bg:#07080B; --panel:#0E1015; --panel2:#131620; --border:#1E2230;
+  --text:#E6E9F0; --dim:#8B9099; --gold:#D8B25F; --teal:#4FE3B8;
+  --hover:#1A1E2A; --input:#0B0E14; --shadow:0 10px 40px rgba(0,0,0,.55);
+}
+:root[data-theme="light"]{
+  --bg:#F4F5F8; --panel:#FFFFFF; --panel2:#F8F9FC; --border:#E2E5EC;
+  --text:#1A1D24; --dim:#6B7280; --gold:#A67C1F; --teal:#059669;
+  --hover:#EEF0F5; --input:#FFFFFF; --shadow:0 10px 40px rgba(20,30,50,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg); color:var(--text); font-size:14px; line-height:1.5;
+  transition:background-color .3s ease, color .3s ease;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em}
+
+/* ===================== LAYOUT ===================== */
+.app{display:flex;min-height:100vh;width:100%}
+.sidebar{
+  width:236px;flex:0 0 236px;background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:18px 10px;transition:width .3s ease, background-color .3s ease;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 22px;border-bottom:1px solid var(--border);margin-bottom:14px;overflow:hidden}
+.logo-mark{
+  width:34px;height:34px;flex:0 0 34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--gold),var(--teal));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;color:#07080B;font-size:13px;letter-spacing:.4px;
+}
+.logo-text{overflow:hidden;white-space:nowrap}
+.logo-title{font-weight:700;font-size:14px;letter-spacing:.2px}
+.logo-sub{font-size:10.5px;color:var(--dim);letter-spacing:.2px}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;
+  cursor:pointer;color:var(--dim);font-weight:500;font-size:13.5px;border:1px solid transparent;
+  transition:background-color .2s ease, color .2s ease, border-color .2s ease;
+  white-space:nowrap;overflow:hidden;
+}
+.nav-item:hover{background:var(--hover);color:var(--text)}
+.nav-item.active{background:linear-gradient(90deg,rgba(216,178,95,.14),rgba(79,227,184,.08));color:var(--gold);border-color:rgba(216,178,95,.28)}
+.nav-icon{font-size:16px;flex:0 0 18px;text-align:center}
+.nav-footer{font-size:10.5px;color:var(--dim);padding:12px 8px 0;border-top:1px solid var(--border);white-space:nowrap;overflow:hidden}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 26px;border-bottom:1px solid var(--border);background:var(--bg);
+  position:sticky;top:0;z-index:20;
+}
+.topbar-left{display:flex;align-items:center;gap:14px;min-width:0}
+.view-title{font-size:18px;font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status-badge{
+  font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px;
+  letter-spacing:.3px;white-space:nowrap;
+}
+.status-badge.ok{background:rgba(79,227,184,.12);color:var(--teal);border:1px solid rgba(79,227,184,.25)}
+.status-badge.empty{background:rgba(139,144,153,.12);color:var(--dim);border:1px solid rgba(139,144,153,.25)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--panel);
+  cursor:pointer;color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center;
+  transition:background-color .2s,border-color .2s,transform .15s;
+}
+.icon-btn:hover{background:var(--hover);border-color:var(--gold);transform:translateY(-1px)}
+#view{padding:24px 26px 60px;flex:1;animation:none}
+#view.fade{animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===================== GLOBAL DATE FILTER ===================== */
+.global-date-filter{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:9px;padding:4px 8px;font-size:11px;
+}
+.global-date-filter label{
+  display:flex;align-items:center;gap:4px;color:var(--dim);font-weight:600;
+  margin:0;letter-spacing:.2px;
+}
+.global-date-filter input{
+  background:var(--input);border:1px solid var(--border);
+  border-radius:5px;padding:3px 6px;color:var(--text);font-size:11px;
+  outline:none;transition:border-color .2s;
+}
+.global-date-filter input:focus{border-color:var(--gold)}
+#globalDateClear{
+  background:transparent;border:1px solid var(--border);
+  border-radius:5px;color:var(--dim);cursor:pointer;
+  width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s,border-color .15s;padding:0;font-size:12px;
+}
+#globalDateClear:hover{color:#ff6b6b;border-color:rgba(255,107,107,.4)}
+
+/* ===================== COMPONENTS ===================== */
+.btn{
+  border:none;border-radius:10px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer;
+  transition:transform .15s,background-color .2s,opacity .2s;letter-spacing:.2px;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#c99a3c);color:#07080B}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#2ec99b);color:#07080B}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--hover);border-color:var(--gold)}
+.btn-danger{background:rgba(255,107,107,.12);color:#ff6b6b;border:1px solid rgba(255,107,107,.35)}
+.btn-danger:hover{background:rgba(255,107,107,.2)}
+
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:background-color .3s}
+.panel-title{font-size:13px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px;
+  transition:transform .2s,border-color .2s, background-color .3s;
+}
+.kpi-card:hover{transform:translateY(-2px);border-color:rgba(216,178,95,.35)}
+.kpi-highlight{border-color:rgba(79,227,184,.35);background:linear-gradient(180deg,var(--panel),rgba(79,227,184,.05))}
+.kpi-label{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.kpi-value{font-size:22px;font-weight:700;letter-spacing:-.3px;line-height:1.15;word-break:break-word}
+.kpi-sub{font-size:11.5px;color:var(--dim);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.kpi-dev{
+  grid-column:1/-1;
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:16px 22px;display:flex;align-items:center;justify-content:space-between;
+  gap:20px;flex-wrap:wrap;transition:transform .2s,border-color .2s,background-color .3s;
+}
+.kpi-dev:hover{transform:translateY(-2px)}
+.kpi-dev.ok{border-color:rgba(79,227,184,.3);background:linear-gradient(180deg,var(--panel),rgba(79,227,184,.04))}
+.kpi-dev.warn{border-color:rgba(255,180,50,.4);background:linear-gradient(180deg,var(--panel),rgba(255,180,50,.05))}
+.kpi-dev.alert{border-color:rgba(255,107,107,.45);background:linear-gradient(180deg,var(--panel),rgba(255,107,107,.06))}
+.kpi-dev-left{display:flex;align-items:center;gap:14px}
+.kpi-dev-right{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.kpi-dev-stat{text-align:right;min-width:90px}
+.kpi-dev-stat .kpi-value{font-size:20px}
+.kpi-dev-icon{font-size:26px;opacity:.95;flex:0 0 auto}
+.kpi-dev-dates{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.kpi-dev-dates span{color:var(--dim);font-size:12px}
+.kpi-dev-dates input{
+  background:var(--input);border:1px solid var(--border);border-radius:7px;
+  padding:5px 8px;color:var(--text);font-size:11.5px;outline:none;
+  transition:border-color .2s;
+}
+.kpi-dev-dates input:focus{border-color:var(--gold)}
+.kpi-dev-clear{
+  background:transparent;border:1px solid var(--border);border-radius:6px;
+  width:24px;height:24px;color:var(--dim);cursor:pointer;font-size:14px;
+  line-height:1;padding:0;display:flex;align-items:center;justify-content:center;
+  transition:color .15s,border-color .15s;
+}
+.kpi-dev-clear:hover{color:#ff6b6b;border-color:rgba(255,107,107,.4)}
+.kpi-dev-period{font-size:10.5px;color:var(--dim);margin-top:3px;font-weight:500}
+
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:90px 1fr 64px;align-items:center;gap:10px}
+.bar-label{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:22px;background:var(--panel2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width .5s ease}
+.bar-value{font-size:12px;font-weight:600;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+
+.vbar-chart{display:flex;gap:10px;align-items:flex-end;padding:0 2px}
+.vbar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.vbar-value{font-size:10px;color:var(--dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.vbar-track{width:100%;height:170px;display:flex;align-items:flex-end}
+.vbar-fill{width:100%;max-width:44px;margin:0 auto;background:linear-gradient(180deg,var(--gold),var(--teal));border-radius:5px 5px 0 0;min-height:2px;transition:height .5s ease}
+.vbar-label{font-size:10.5px;color:var(--dim);white-space:nowrap}
+
+.top-list{display:flex;flex-direction:column;gap:10px}
+.top-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--panel2);transition:background-color .2s}
+.top-item:hover{background:var(--hover)}
+.top-rank{width:24px;height:24px;border-radius:7px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex:0 0 24px}
+.top-info{flex:1;min-width:0}
+.top-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-meta{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);text-align:right;flex:0 0 auto}
+
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);background:var(--panel)}
+.data-table{width:100%;border-collapse:collapse;min-width:640px}
+.data-table th{
+  text-align:left;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;
+  letter-spacing:.7px;padding:12px 14px;background:var(--panel2);border-bottom:1px solid var(--border);
+  white-space:nowrap;position:sticky;top:0;
+}
+.data-table td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--hover)}
+.data-table .num{text-align:right;font-variant-numeric:tabular-nums}
+.data-table .strong{font-weight:700}
+.data-table.compact td,.data-table.compact th{padding:8px 10px;font-size:12px}
+
+.cell-client{display:flex;align-items:center;gap:10px;min-width:0}
+.avatar{
+  width:30px;height:30px;flex:0 0 30px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;letter-spacing:.3px;
+}
+.client-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.client-sub{font-size:10.5px;color:var(--dim);white-space:nowrap}
+.sku{font-size:11.5px;color:var(--dim);background:var(--panel2);padding:2px 7px;border-radius:5px}
+.sku-name{
+  font-size:10.5px;color:var(--dim);margin-top:2px;
+  max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.3;
+}
+
+.brand-badge{
+  display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.5px;
+  padding:3px 9px;border-radius:6px;border:1px solid transparent;white-space:nowrap;
+}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.4px}
+.pill-teal{background:rgba(79,227,184,.15);color:var(--teal);border:1px solid rgba(79,227,184,.3)}
+.pill-dim{color:var(--dim);background:var(--panel2);border:1px solid var(--border)}
+
+.view-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.view-head h2{font-size:17px;font-weight:700;letter-spacing:.2px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters input,.filters select{
+  background:var(--input);border:1px solid var(--border);border-radius:9px;padding:8px 12px;
+  color:var(--text);font-size:13px;outline:none;transition:border-color .2s,background-color .3s;min-width:0;
+}
+.filters input{min-width:220px}
+.filters input:focus,.filters select:focus{border-color:var(--gold)}
+.filters input::placeholder{color:var(--dim)}
+
+.table-footer{
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 2px 0;font-size:12.5px;color:var(--dim);
+}
+.table-footer b{color:var(--text);font-weight:700}
+.pagination{display:flex;gap:4px;flex-wrap:wrap}
+.page-btn{
+  min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--border);
+  background:var(--panel);color:var(--text);cursor:pointer;font-size:12px;font-weight:600;
+  transition:background-color .15s,border-color .15s;
+}
+.page-btn:hover:not(:disabled){background:var(--hover);border-color:var(--gold)}
+.page-btn.active{background:var(--gold);color:#07080B;border-color:var(--gold)}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:80px 20px;gap:14px;
+}
+.empty-icon{font-size:48px;opacity:.7}
+.empty-state h3{font-size:19px;font-weight:700}
+.empty-state p{color:var(--dim);max-width:420px}
+.empty-mini{color:var(--dim);text-align:center;padding:30px;font-size:13px}
+
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.drop-zone{
+  border:2px dashed var(--border);border-radius:16px;padding:40px 24px;text-align:center;
+  background:var(--panel);cursor:pointer;transition:border-color .25s,background-color .25s,transform .15s;
+}
+.drop-zone:hover{border-color:var(--gold);background:var(--panel2)}
+.drop-zone.dragover{border-color:var(--teal);background:rgba(79,227,184,.05);transform:scale(1.01)}
+.drop-icon{font-size:40px;margin-bottom:12px;display:block}
+.drop-title{font-size:16px;font-weight:700;margin-bottom:6px}
+.drop-sub{font-size:12.5px;color:var(--dim)}
+
+.info-panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:20px}
+.info-panel h3{font-size:13px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px}
+.info-list{display:flex;flex-direction:column;gap:8px;font-size:13px;list-style:none}
+.info-list li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border)}
+.info-list li:last-child{border-bottom:none}
+.info-list b{color:var(--text);font-weight:600}
+
+.preview-panel{background:var(--panel);border:1px solid var(--gold);border-radius:16px;padding:22px;margin-top:20px}
+.preview-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.preview-head h3{font-size:16px;font-weight:700}
+.preview-head .file{font-size:12px;color:var(--dim)}
+
+.warning-box{
+  background:rgba(255,180,50,.08);border:1px solid rgba(255,180,50,.35);border-radius:12px;
+  padding:14px 16px;margin-bottom:16px;font-size:13px;
+}
+.warning-box b{color:#ffb432;display:block;margin-bottom:4px}
+
+.preview-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.metric-card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.metric-card.primary{border-color:rgba(79,227,184,.4);background:rgba(79,227,184,.06)}
+.metric-card.warn{border-color:rgba(255,180,50,.35)}
+.metric-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+
+.mapping-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;margin-bottom:20px;max-height:260px;overflow-y:auto;padding:4px}
+.mapping-item{display:flex;align-items:center;gap:6px;font-size:11.5px;padding:6px 9px;border-radius:7px;background:var(--panel2);border:1px solid var(--border)}
+.mapping-item.ok{border-color:rgba(79,227,184,.2)}
+.mapping-item.missing{border-color:rgba(255,180,50,.3);opacity:.8}
+.map-key{font-weight:600;white-space:nowrap}
+.map-arrow{color:var(--dim);flex:0 0 auto}
+.map-val{color:var(--dim);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.mapping-item.missing .map-val{color:#ffb432;font-style:italic}
+
+.preview-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.radio-group{display:flex;gap:16px;margin-right:auto;font-size:13px}
+.radio-group label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.radio-group input{accent-color:var(--gold);cursor:pointer}
+
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.stat-block{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px}
+.stat-block h3{font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.stat-row:last-child{border-bottom:none}
+.stat-row b{font-weight:700}
+.stat-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+.columns-tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab-btn{background:var(--panel2);border:1px solid var(--border);color:var(--dim);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
+.tab-btn.active{background:var(--gold);color:#07080B;border-color:var(--gold)}
+.columns-list{display:flex;flex-wrap:wrap;gap:5px}
+.col-chip{font-size:11px;background:var(--panel2);border:1px solid var(--border);padding:3px 8px;border-radius:6px;color:var(--dim);font-family:ui-monospace,monospace}
+.storage-note{font-size:11.5px;color:var(--dim);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+
+.mix-table{width:100%;border-collapse:collapse}
+.mix-table th{text-align:left;font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;border-bottom:1px solid var(--border)}
+.mix-table td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;font-variant-numeric:tabular-nums}
+.mix-table tr:last-child td{border-bottom:none}
+.mix-bar{position:relative;height:20px;background:var(--panel2);border-radius:5px;overflow:hidden;min-width:80px}
+.mix-bar-fill{height:100%;transition:width .5s ease}
+.delta-up{color:var(--teal);font-weight:700}
+.delta-down{color:#ff6b6b;font-weight:700}
+
+/* ===================== ANÁLISIS 80/20 ===================== */
+.pareto-filter-bar{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;
+}
+.pareto-filter-presets{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pareto-filter-label{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-right:4px}
+.pareto-filter-presets .btn{padding:6px 12px;font-size:11.5px}
+.pareto-filter-presets .btn.active{background:var(--gold);color:#07080B;border-color:var(--gold)}
+.pareto-filter-dates{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.pareto-filter-dates label{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--dim);font-weight:600;letter-spacing:.3px}
+.pareto-filter-dates input{background:var(--input);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;transition:border-color .2s}
+.pareto-filter-dates input:focus{border-color:var(--gold)}
+.pareto-filter-info{font-size:11.5px;color:var(--dim);padding-left:14px;border-left:1px solid var(--border)}
+.pareto-filter-info b{color:var(--text);font-weight:700}
+
+.pareto-insight-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.pareto-insight{
+  background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px;
+  display:flex;gap:14px;align-items:center;transition:transform .2s,border-color .2s;
+}
+.pareto-insight:hover{transform:translateY(-2px);border-color:rgba(216,178,95,.35)}
+.pareto-insight-icon{font-size:26px;opacity:.9;flex:0 0 auto}
+.pareto-insight-body{flex:1;min-width:0}
+.pareto-insight-title{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.pareto-insight-text{font-size:13px;color:var(--text);line-height:1.45}
+.pareto-insight-text b{color:var(--gold);font-weight:800}
+
+.pareto-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.pareto-panel{padding:0;overflow:hidden;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.pareto-panel .pareto-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.pareto-panel .pareto-head h3{font-size:13px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:0}
+.pareto-summary{font-size:11.5px;color:var(--dim)}
+.pareto-summary b{color:var(--text);font-weight:700}
+.pareto-summary .hl{color:var(--gold);font-weight:800}
+.pareto-panel .table-wrap{border:none;border-radius:0;max-height:520px;overflow-y:auto}
+.pareto-panel .data-table{min-width:0}
+.pareto-panel .data-table th{background:var(--panel);position:sticky;top:0;z-index:2}
+.pareto-vital td{background:rgba(216,178,95,.035)}
+.pareto-vital td:first-child{box-shadow:inset 2px 0 0 var(--gold)}
+.pareto-rank{font-weight:700;color:var(--dim);font-size:11px;text-align:center;width:34px}
+.pareto-vital .pareto-rank{color:var(--gold)}
+.pareto-divider td{padding:0;border:none;height:0}
+.pareto-divider-line{position:relative;height:0;border-top:2px dashed var(--gold);margin:10px 14px}
+.pareto-divider-line span{position:absolute;right:0;top:-10px;background:var(--panel);padding:1px 8px;font-size:9.5px;color:var(--gold);font-weight:800;letter-spacing:.6px;border-radius:4px}
+.pareto-bar{position:relative;height:8px;background:var(--panel2);border-radius:4px;min-width:100px}
+.pareto-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:4px;transition:width .5s}
+.pareto-bar-80{position:absolute;top:-3px;bottom:-3px;left:80%;width:2px;background:var(--text);opacity:.55;border-radius:1px}
+.pareto-more{padding:10px 20px;font-size:11.5px;color:var(--dim);border-top:1px solid var(--border);background:var(--panel2);text-align:center}
+
+/* ===================== MELI CAPRIS ===================== */
+.meli-dashboard{max-width:1400px;margin:auto}
+.meli-dashboard .header-meli{background:var(--panel);padding:16px 20px;border-radius:12px;border:1px solid var(--border);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.meli-dashboard .header-meli h1{font-size:18px;color:var(--text);margin:0}
+.meli-dashboard .meli-info{font-size:12px;color:var(--dim)}
+.meli-dashboard .filtros-meli{background:var(--panel);padding:14px 18px;border-radius:10px;border:1px solid var(--border);display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:18px}
+.meli-dashboard .filtro-grupo-meli{display:flex;flex-direction:column;gap:3px}
+.meli-dashboard .filtro-grupo-meli label{font-size:11px;font-weight:600;color:var(--dim)}
+.meli-dashboard .filtro-grupo-meli input,
+.meli-dashboard .filtro-grupo-meli select{
+  padding:7px 10px;border:1px solid var(--border);border-radius:6px;
+  background:var(--input);color:var(--text);min-width:130px;font-size:12px;outline:none;
+  transition:border-color .2s;
+}
+.meli-dashboard .filtro-grupo-meli input:focus,
+.meli-dashboard .filtro-grupo-meli select:focus{border-color:var(--gold)}
+.meli-dashboard .btn-meli{
+  padding:8px 16px;border:none;border-radius:6px;font-weight:600;
+  cursor:pointer;font-size:12.5px;transition:filter .2s;
+}
+.meli-dashboard .btn-meli-primario{background:var(--gold);color:#07080B}
+.meli-dashboard .btn-meli-primario:hover{filter:brightness(1.08)}
+.meli-dashboard .kpi-container-meli{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.meli-dashboard .kpi-card-meli{background:var(--panel);padding:14px;border-radius:10px;border:1px solid var(--border);text-align:center}
+.meli-dashboard .kpi-card-meli h3{font-size:12px;color:var(--dim);font-weight:500}
+.meli-dashboard .kpi-card-meli p{font-size:24px;font-weight:800;color:var(--text);margin-top:3px}
+.meli-dashboard .charts-row-meli{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.meli-dashboard .chart-box-meli{background:var(--panel);padding:12px;border-radius:10px;border:1px solid var(--border);height:300px;position:relative}
+.meli-dashboard .tabla-container-meli{background:var(--panel);padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:18px}
+.meli-dashboard .tabla-container-meli h2{font-size:16px;margin-bottom:12px;color:var(--text)}
+.meli-dashboard .tabla-wrapper-meli{overflow-x:auto;max-height:400px;overflow-y:auto}
+.meli-dashboard table{width:100%;border-collapse:collapse;font-size:12px;border-radius:6px}
+.meli-dashboard th{
+  background:var(--panel2);padding:8px 6px;text-align:left;
+  position:sticky;top:0;z-index:2;color:var(--dim);font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);
+}
+.meli-dashboard td{padding:7px 6px;border-bottom:1px solid var(--border);color:var(--text)}
+.meli-dashboard tr:hover td{background:var(--hover)}
+.meli-dashboard .pareto-container-meli,
+.meli-dashboard .recomendacion-container-meli{
+  background:var(--panel);padding:16px;border-radius:10px;
+  border:1px solid var(--border);margin-bottom:18px;
+}
+.meli-dashboard .pareto-container-meli h2,
+.meli-dashboard .recomendacion-container-meli h2{
+  font-size:16px;color:var(--text);margin-bottom:10px;
+}
+.meli-dashboard .pareto-table-wrapper-meli,
+.meli-dashboard .rec-table-wrapper-meli{
+  border:1px solid var(--border);border-radius:6px;
+  max-height:300px;overflow-y:auto;
+}
+.meli-dashboard .empty-mini-meli{text-align:center;padding:24px;color:var(--dim);font-size:12.5px}
+
+#toasts{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:9999}
+.toast{
+  background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--gold);
+  border-radius:10px;padding:12px 18px;min-width:260px;max-width:380px;box-shadow:var(--shadow);
+  font-size:13px;animation:slideIn .35s ease;
+}
+.toast.success{border-left-color:var(--teal)}
+.toast.error{border-left-color:#ff6b6b}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+@media (max-width:1100px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .chart-grid,.import-grid,.data-grid{grid-template-columns:1fr}
+  .pareto-insight-grid{grid-template-columns:1fr}
+  .pareto-grid{grid-template-columns:1fr}
+  .pareto-filter-dates{margin-left:0;width:100%}
+  .pareto-filter-info{border-left:none;padding-left:0}
+  .meli-dashboard .kpi-container-meli{grid-template-columns:1fr 1fr}
+  .meli-dashboard .charts-row-meli{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  .sidebar{width:64px;flex-basis:64px;padding:14px 6px}
+  .logo-text,.nav-item span:not(.nav-icon),.nav-footer{display:none}
+  .logo{justify-content:center;padding:4px 0 18px}
+  .nav-item{justify-content:center;padding:11px 0}
+  #view{padding:18px 14px 50px}
+  .topbar{padding:14px 16px;flex-wrap:wrap}
+  .filters input{min-width:0;flex:1}
+}
+@media (max-width:640px){
+  .kpi-grid{grid-template-columns:1fr}
+  .preview-metrics{grid-template-columns:1fr}
+  .view-title{font-size:15px}
+  .topbar{padding:12px 14px}
+  .top-list .top-name{max-width:130px}
+  .kpi-dev-right{gap:14px;width:100%;justify-content:flex-start}
+  .kpi-dev-stat{text-align:left}
+  .meli-dashboard .kpi-container-meli{grid-template-columns:1fr}
+  .global-date-filter{width:100%;justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0s!important;transition-duration:0s!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">ML</div>
+      <div class="logo-text">
+        <div class="logo-title">Ventas</div>
+        <div class="logo-sub">Construcción & Herramientas</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item" data-view="import"><span class="nav-icon">📥</span><span>Importar</span></div>
+      <div class="nav-item" data-view="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+      <div class="nav-item" data-view="pareto"><span class="nav-icon">🎯</span><span>Análisis 80/20</span></div>
+      <div class="nav-item" data-view="ventas"><span class="nav-icon">💰</span><span>Ventas</span></div>
+      <div class="nav-item" data-view="clientes"><span class="nav-icon">👥</span><span>Clientes</span></div>
+      <div class="nav-item" data-view="productos"><span class="nav-icon">📦</span><span>Productos</span></div>
+      <div class="nav-item" data-view="reportes"><span class="nav-icon">📈</span><span>Reportes</span></div>
+      <div class="nav-item" data-view="melicapris"><span class="nav-icon">🔬</span><span>MELI CAPRIS</span></div>
+      <div class="nav-item" data-view="datos"><span class="nav-icon">🗄️</span><span>Datos</span></div>
+    </nav>
+    <div class="nav-footer">v4 · 2026-2027</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="view-title" id="view-title">Importar Datos</div>
+        <span class="status-badge empty" id="status-badge">Sin datos</span>
+      </div>
+      <div class="topbar-right">
+        <div class="global-date-filter" title="Filtro global de fechas (afecta a todos los KPIs)">
+          <label>Desde <input type="date" id="globalFrom" data-filter="global-from"></label>
+          <label>Hasta <input type="date" id="globalTo" data-filter="global-to"></label>
+          <button id="globalDateClear" data-action="global-clear" title="Limpiar filtro de fechas">×</button>
+        </div>
+        <button class="icon-btn" id="theme-toggle" title="Cambiar tema">🌙</button>
+      </div>
+    </header>
+    <main id="view"></main>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<input type="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" style="display:none">
+
+<script>
+(function(){
+'use strict';
+
+/* ===================== CONSTANTS ===================== */
+const STORAGE_KEY = 'crm_ventas_v4';
+const THEME_KEY = 'crm_theme_v4';
+
+const BRAND_COLORS = {
+  'TOTAL':'#4A90E2',
+  'DCK':'#E53935',
+  'FORCE':'#34495E',
+  'JASIC':'#FF9500',
+  'AIR FORCE':'#6EC6FF',
+  'OTROS':'#8B9099'
+};
+const BRAND_ORDER = ['TOTAL','DCK','FORCE','JASIC','AIR FORCE','OTROS'];
+const BRAND_GOALS = { 'TOTAL':70,'DCK':15,'FORCE':5,'JASIC':5,'AIR FORCE':5 };
+
+const TOTAL_PREFIXES = ['UT','TH','TK','TA','TD','TF','TM','TP','TS','TT','TW','TGT','TBL','TDL','TID','TIR','TIW','TRO','TRH','TSL','TRS','TAB','TAC','TAK','TAM','TAP','TAT','TLL','TML','TMS','TCB','TMP'];
+
+const VENTAS_HEADERS = [
+  'COD','FECHA CORTE','CORTE','FECHA','COD. CLIENTE','NOMBRE CLIENTE',
+  'TIPO ID','NO. ID','DIRECCIÓN','DEPARTAMENTO','ESTADO','FACTURA',
+  'FULL','NO. PED','PROD. SKU','UND','VALOR','FLETE','% FLETE',
+  'COMISION','% COMISION','PRECIO B/I','RETE IVA (15%)','RETEFUENTE',
+  'PRECIO FINAL','Observaciones'
+];
+
+const VENTAS_COLS = [
+  { key:'cod', names:['COD','CODIGO','CÓDIGO'] },
+  { key:'fechaCorte', names:['FECHA CORTE','FECHACORTE'] },
+  { key:'corte', names:['CORTE'] },
+  { key:'fecha', names:['FECHA','FECHA VENTA'] },
+  { key:'codCliente', names:['COD. CLIENTE','COD CLIENTE','CODCLIENTE','CODIGO CLIENTE'] },
+  { key:'nombreCliente', names:['NOMBRE CLIENTE','NOMBRE','CLIENTE'] },
+  { key:'tipoId', names:['TIPO ID','TIPOID'] },
+  { key:'noId', names:['NO. ID','NO ID','NOID','NIT','CC'] },
+  { key:'direccion', names:['DIRECCION','DIRECCIÓN','DIR'] },
+  { key:'depto', names:['DEPARTAMENTO','DEPTO','DPTO'] },
+  { key:'estado', names:['ESTADO'] },
+  { key:'factura', names:['FACTURA','NO FACTURA','FACT'] },
+  { key:'full', names:['FULL'] },
+  { key:'noPed', names:['NO. PED','NO PED','NOPED','NO PEDIDO'] },
+  { key:'sku', names:['PROD. SKU','PROD SKU','SKU','PRODSKU'] },
+  { key:'und', names:['UND','UNIDADES','CANTIDAD'] },
+  { key:'valor', names:['VALOR','VALOR BRUTO'] },
+  { key:'flete', names:['FLETE'] },
+  { key:'pctFlete', names:['% FLETE','%FLETE'] },
+  { key:'comision', names:['COMISION','COMISIÓN'] },
+  { key:'pctComision', names:['% COMISION','%COMISION','% COMISIÓN'] },
+  { key:'precioBI', names:['PRECIO B/I','PRECIO BI'] },
+  { key:'reteIva', names:['RETE IVA (15%)','RETE IVA','RETEIVA'] },
+  { key:'reteFuente', names:['RETEFUENTE','RETE FUENTE'] },
+  { key:'precioFinal', names:['PRECIO FINAL','PRECIOFINAL'] },
+  { key:'observaciones', names:['OBSERVACIONES','OBS'] }
+];
+
+/* ===================== STATE ===================== */
+const state = {
+  ventas: [], marcas: [], brandMap: {}, nameMap: {},
+  fileName: '', loadedAt: null, lastImport: null
+};
+const ui = {
+  view: 'import',
+  ventasPage:1, ventasSearch:'', ventasBrand:'', ventasDepto:'', ventasFull:'',
+  productosSearch:'', productosBrand:'',
+  clientesSearch:'',
+  datosTab: 'VENTAS',
+  importMode: 'replace',
+  preview: null,
+  paretoFrom: '', paretoTo: '',
+  devFrom: '', devTo: '',
+  globalFrom: '', globalTo: ''
+};
+
+const meliState = {
+  data: [],
+  filtered: [],
+  charts: {},
+  initialized: false
+};
+
+/* ===================== UTILS ===================== */
+function escapeHTML(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function alpha(hex, a){
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(139,144,153,${a})`;
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function fmtCOP(n){
+  n = parseNum(n);
+  return '$' + Math.round(n).toLocaleString('es-CO');
+}
+function fmtNum(n){
+  n = parseNum(n);
+  return Math.round(n).toLocaleString('es-CO');
+}
+function formatDateCO(iso){
+  if(!iso) return '—';
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return iso;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+function normalizeHeader(h){
+  return String(h == null ? '' : h).toUpperCase().trim().replace(/\s+/g,' ');
+}
+
+/* ===================== PARSERS ===================== */
+function parseNum(v){
+  if(v === null || v === undefined || v === '') return 0;
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  let s = String(v).trim();
+  if(!s || s === '-' || s === '—' || s === 'N/A' || s === 'null') return 0;
+  const hasPct = s.includes('%');
+  s = s.replace(/[\$€£%\s]/g,'');
+  if(!s || s === '-') return 0;
+  const c = s.lastIndexOf(','), d = s.lastIndexOf('.');
+  let n;
+  if(c > -1 && d > -1){
+    if(c > d) n = parseFloat(s.replace(/\./g,'').replace(',','.'));
+    else n = parseFloat(s.replace(/,/g,''));
+  } else if(c > -1){
+    const after = s.slice(c+1);
+    if(after.length === 3 && !hasPct) n = parseFloat(s.replace(/,/g,''));
+    else n = parseFloat(s.replace(',','.'));
+  } else if(d > -1){
+    const after = s.slice(d+1);
+    if(after.length === 3 && !hasPct) n = parseFloat(s.replace(/\./g,''));
+    else n = parseFloat(s);
+  } else {
+    n = parseFloat(s);
+  }
+  if(!isFinite(n)) n = 0;
+  if(hasPct) n = n / 100;
+  return n;
+}
+function isoDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function parseDate(v){
+  if(v === null || v === undefined || v === '') return '';
+  if(v instanceof Date){
+    if(isNaN(v.getTime())) return '';
+    return isoDate(v);
+  }
+  if(typeof v === 'number' && v > 20000 && v < 100000){
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    return isoDate(d);
+  }
+  const s = String(v).trim();
+  if(!s || s === '-' || s === '—') return '';
+
+  let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(m){
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if(mo >= 1 && mo <= 12 && d >= 1 && d <= 31)
+      return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m){
+    const a = +m[1], b = +m[2], y = +m[3];
+    let d, mo;
+    if(a > 12 && b <= 12){ d = a; mo = b; }
+    else { d = a; mo = b; }
+    if(mo >= 1 && mo <= 12 && d >= 1 && d <= 31)
+      return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})(?:\D|$)/);
+  if(m){
+    const a = +m[1], b = +m[2];
+    let y = +m[3];
+    y = y < 50 ? 2000 + y : 1900 + y;
+    let d, mo;
+    if(a > 12 && b <= 12){ d = a; mo = b; }
+    else if(b > 12 && a <= 12){ d = b; mo = a; }
+    else { d = a; mo = b; }
+    if(mo >= 1 && mo <= 12 && d >= 1 && d <= 31)
+      return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  const d = new Date(s);
+  if(!isNaN(d.getTime()) && d.getFullYear() > 1900 && d.getFullYear() < 2200){
+    return isoDate(d);
+  }
+  return '';
+}
+
+function parseCSV(text){
+  const sample = text.slice(0, 8192);
+  const counts = { '\t':0, ',':0, ';':0, '|':0 };
+  for(const ch of sample) if(ch in counts) counts[ch]++;
+  let delim = ',', max = 0;
+  for(const [d,n] of Object.entries(counts)) if(n > max){ max = n; delim = d; }
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(inQ){
+      if(ch === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += ch;
+    } else {
+      if(ch === '"') inQ = true;
+      else if(ch === delim){ row.push(field); field = ''; }
+      else if(ch === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else if(ch === '\r'){ /* skip */ }
+      else field += ch;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''));
+}
+
+/* ===================== BRAND & NAME DETECTION ===================== */
+function normalizeBrand(b){
+  let s = String(b == null ? '' : b).toUpperCase().trim();
+  s = s.replace(/^[\*\-\.\s]+|[\*\-\.\s]+$/g,'').replace(/\s+/g,' ');
+  if(!s || s === 'N/A' || s === 'NA') return 'OTROS';
+  if(/^TOTAL(\s*TOOLS)?/.test(s)) return 'TOTAL';
+  if(/^DCK/.test(s)) return 'DCK';
+  if(/^JASIC/.test(s)) return 'JASIC';
+  if(/^AIR\s*FORCE/.test(s)) return 'AIR FORCE';
+  if(/^FORCE/.test(s)) return 'FORCE';
+  return 'OTROS';
+}
+
+function detectBrand(sku, obs, brandMap){
+  const s = String(sku == null ? '' : sku).toUpperCase().trim();
+  const sNs = s.replace(/\s+/g,'');
+  if(!s && !obs) return 'OTROS';
+  if(brandMap[s]) return brandMap[s];
+  if(brandMap[sNs]) return brandMap[sNs];
+  if(sNs){
+    if(/^DCK/.test(sNs)) return 'DCK';
+    if(/^JASIC/.test(sNs) || /^JSA/.test(sNs)) return 'JASIC';
+    if(/^AIR[\s\-]?FORCE/.test(s) || /^AIRF/.test(sNs)) return 'AIR FORCE';
+    if(/^FORCE/.test(sNs) || /^FRC/.test(sNs)) return 'FORCE';
+    if(/^TOT/.test(sNs)) return 'TOTAL';
+    for(const p of TOTAL_PREFIXES){ if(sNs.startsWith(p)) return 'TOTAL'; }
+    if(/^K[SDRJPMQYGBFA]/.test(sNs)) return 'DCK';
+    if(/^(ARC|MIG|TIG|CUT|E71|SUN|JS-|LS-)/.test(sNs)) return 'JASIC';
+  }
+  if(obs){
+    const o = String(obs).toUpperCase();
+    if(/\bAIR\s*FORCE\b/.test(o)) return 'AIR FORCE';
+    if(/\bJASIC\b/.test(o)) return 'JASIC';
+    if(/\bDCK\b/.test(o)) return 'DCK';
+    if(/\bTOTAL\b/.test(o)) return 'TOTAL';
+    if(/\bFORCE\b/.test(o)) return 'FORCE';
+  }
+  return 'OTROS';
+}
+
+function buildBrandMap(catalog){
+  const map = {};
+  for(const item of catalog){
+    const brand = normalizeBrand(item.BRAND);
+    const refe = String(item.REFE || '').trim();
+    if(!refe) continue;
+    const na = String(item.NA || '');
+    const rUp = refe.toUpperCase();
+    map[rUp] = brand;
+    map[rUp.replace(/\s+/g,'')] = brand;
+    for(const token of rUp.split(/[+\s,;]+/)){
+      if(token.length >= 3 && !map[token]) map[token] = brand;
+    }
+    const tokens = na.toUpperCase().match(/\b[A-Z]{2,}[A-Z0-9\-]{3,}\b/g) || [];
+    for(const t of tokens){ if(!map[t]) map[t] = brand; }
+  }
+  return map;
+}
+
+function buildNameMap(catalog){
+  const map = {};
+  for(const item of catalog){
+    const na = String(item.NA || '').trim();
+    if(!na) continue;
+    const refe = String(item.REFE || '').trim();
+    if(!refe) continue;
+    const rUp = refe.toUpperCase();
+    map[rUp] = na;
+    map[rUp.replace(/\s+/g,'')] = na;
+    for(const token of rUp.split(/[+\s,;]+/)){
+      if(token.length >= 3 && !map[token]) map[token] = na;
+    }
+  }
+  return map;
+}
+
+function getSkuName(sku){
+  if(!sku || !state.nameMap) return '';
+  const s = String(sku).toUpperCase().trim();
+  if(state.nameMap[s]) return state.nameMap[s];
+  const sNs = s.replace(/\s+/g,'');
+  if(state.nameMap[sNs]) return state.nameMap[sNs];
+  return '';
+}
+
+/* ===================== ROW KEY ===================== */
+function rowKey(r){
+  return [r.cod||'', r.factura||'', r.noPed||'', r.sku||'', r.fecha||'', String(r.und||'')].join('|');
+}
+function isValidRow(r){
+  return !!(r.sku || r.nombreCliente || r.cod || r.factura || r.noPed || parseNum(r.valor) !== 0 || parseNum(r.und) !== 0 || r.fecha);
+}
+
+/* ===================== GLOBAL FILTER ===================== */
+function getVentasFiltradas(){
+  const from = ui.globalFrom;
+  const to = ui.globalTo;
+  if(!from && !to) return state.ventas;
+  return state.ventas.filter(r => {
+    if(from && (!r.fecha || r.fecha < from)) return false;
+    if(to && (!r.fecha || r.fecha > to)) return false;
+    return true;
+  });
+}
+
+/* ===================== PERSISTENCE ===================== */
+function saveState(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ventas: state.ventas, marcas: state.marcas,
+      fileName: state.fileName, loadedAt: state.loadedAt, lastImport: state.lastImport
+    }));
+  } catch(e){ console.warn('save error', e); }
+}
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    state.ventas = Array.isArray(d.ventas) ? d.ventas : [];
+    state.marcas = Array.isArray(d.marcas) ? d.marcas : [];
+    state.fileName = d.fileName || '';
+    state.loadedAt = d.loadedAt || null;
+    state.lastImport = d.lastImport || null;
+    state.brandMap = buildBrandMap(state.marcas);
+    state.nameMap = buildNameMap(state.marcas);
+  } catch(e){ console.warn('load error', e); }
+}
+
+/* ===================== TOASTS ===================== */
+function toast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || '');
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }, 4200);
+}
+
+/* ===================== EXTERNAL LIBS ===================== */
+let sheetJsPromise = null;
+function loadSheetJS(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  if(sheetJsPromise) return sheetJsPromise;
+  sheetJsPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js';
+    s.onload = () => resolve(window.XLSX);
+    s.onerror = () => reject(new Error('No se pudo cargar SheetJS. Verifica tu conexión.'));
+    document.head.appendChild(s);
+  });
+  return sheetJsPromise;
+}
+
+let chartJsPromise = null;
+function loadChartJS(){
+  if(window.Chart) return Promise.resolve(window.Chart);
+  if(chartJsPromise) return chartJsPromise;
+  chartJsPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+    s.onload = () => resolve(window.Chart);
+    s.onerror = () => reject(new Error('No se pudo cargar Chart.js. Verifica tu conexión.'));
+    document.head.appendChild(s);
+  });
+  return chartJsPromise;
+}
+
+/* ===================== FILE PARSING ===================== */
+async function parseFile(file){
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const sheets = {};
+
+  if(ext === 'csv' || ext === 'txt'){
+    const text = await file.text();
+    const rows = parseCSV(text);
+    if(rows.length === 0) throw new Error('El archivo CSV está vacío.');
+    const headers = rows[0].map(h => String(h == null ? '' : h).trim());
+    sheets['CSV'] = { headers, rows: rows.slice(1) };
+  } else if(ext === 'xlsx' || ext === 'xls'){
+    await loadSheetJS();
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    for(const name of wb.SheetNames){
+      const sh = wb.Sheets[name];
+      if(!sh) continue;
+      const arr = XLSX.utils.sheet_to_json(sh, { header:1, defval:'', raw:true });
+      if(arr.length === 0) continue;
+      const headers = arr[0].map(h => String(h == null ? '' : h).trim());
+      sheets[name] = { headers, rows: arr.slice(1) };
+    }
+  } else {
+    throw new Error('Formato no soportado. Usa .xlsx, .xls o .csv');
+  }
+
+  const sheetNames = Object.keys(sheets);
+  if(sheetNames.length === 0) throw new Error('El archivo no contiene hojas con datos.');
+
+  const findSheet = (targets) => {
+    const norm = sheetNames.map(n => ({ orig:n, norm:normalizeHeader(n).replace(/\s+/g,'') }));
+    for(const t of targets){
+      const found = norm.find(x => x.norm === t);
+      if(found) return found.orig;
+    }
+    for(const t of targets){
+      const found = norm.find(x => x.norm.includes(t));
+      if(found) return found.orig;
+    }
+    return null;
+  };
+
+  const marcasName = findSheet(['MARCAS','MARCA','CATALOGO','CATALOG']);
+  let ventasName = findSheet(['VENTAS','VENTA','DATA','TRANSACCIONES','DATOS']);
+
+  let vSheet = ventasName ? sheets[ventasName] : null;
+  if(!vSheet){
+    let maxCols = 0;
+    for(const n of sheetNames){
+      if(n === marcasName) continue;
+      if(sheets[n].headers.length > maxCols){ maxCols = sheets[n].headers.length; vSheet = sheets[n]; ventasName = n; }
+    }
+  }
+  if(!vSheet) throw new Error('No se detectó una hoja de VENTAS válida en el archivo.');
+
+  let catalog = [];
+  if(marcasName){
+    const mSheet = sheets[marcasName];
+    const h = mSheet.headers.map(normalizeHeader);
+    const naIdx = h.findIndex(x => x === 'NA' || x.includes('NOMBRE') || x.includes('DESCRIP'));
+    const brandIdx = h.findIndex(x => x === 'BRAND' || x.includes('MARCA'));
+    const refeIdx = h.findIndex(x => x === 'REFE' || x.includes('REF') || x.includes('SKU'));
+    for(const row of mSheet.rows){
+      if(!row || row.length === 0) continue;
+      catalog.push({
+        NA: String(naIdx >= 0 ? row[naIdx] : '').trim(),
+        BRAND: String(brandIdx >= 0 ? row[brandIdx] : '').trim(),
+        REFE: String(refeIdx >= 0 ? row[refeIdx] : '').trim()
+      });
+    }
+  }
+  const brandMap = buildBrandMap(catalog);
+  const mapping = mapColumns(vSheet.headers);
+
+  const parsed = [];
+  for(const raw of vSheet.rows){
+    if(!raw || raw.length === 0) continue;
+    const r = parseVentasRow(raw, mapping, brandMap);
+    if(!r) continue;
+    if(!isValidRow(r)) continue;
+    parsed.push(r);
+  }
+
+  const existingKeys = new Set(state.ventas.map(rowKey));
+  const seenInFile = new Set();
+  let duplicateCount = 0;
+  for(const r of parsed){
+    const k = rowKey(r);
+    if(existingKeys.has(k) || seenInFile.has(k)) duplicateCount++;
+    seenInFile.add(k);
+  }
+  const toImport = parsed.slice();
+
+  return {
+    fileName: file.name,
+    marcasDetected: !!marcasName,
+    marcasName,
+    ventasName,
+    catalog,
+    brandMap,
+    mapping,
+    headers: vSheet.headers,
+    validCount: parsed.length,
+    toImportCount: parsed.length,
+    duplicateCount,
+    previewRows: parsed.slice(0, 5),
+    toImport,
+    allRows: parsed
+  };
+}
+
+function mapColumns(headers){
+  const norm = headers.map(normalizeHeader);
+  const mapping = {};
+  for(const col of VENTAS_COLS){
+    let idx = -1;
+    for(const name of col.names){
+      const target = name.toUpperCase();
+      const found = norm.findIndex(h => h === target);
+      if(found !== -1){ idx = found; break; }
+    }
+    if(idx === -1){
+      for(const name of col.names){
+        const target = name.toUpperCase();
+        const found = norm.findIndex(h => h.includes(target));
+        if(found !== -1){ idx = found; break; }
+      }
+    }
+    mapping[col.key] = idx;
+  }
+  return mapping;
+}
+
+function parseVentasRow(raw, mapping, brandMap){
+  const get = (k) => { const i = mapping[k]; return i >= 0 && i < raw.length ? raw[i] : ''; };
+  const sku = String(get('sku') == null ? '' : get('sku')).trim();
+  const obs = String(get('observaciones') == null ? '' : get('observaciones')).trim();
+  const marca = detectBrand(sku, obs, brandMap);
+  const fullRaw = String(get('full') == null ? '' : get('full')).trim().toUpperCase();
+  return {
+    cod: String(get('cod') == null ? '' : get('cod')).trim(),
+    fechaCorte: parseDate(get('fechaCorte')),
+    corte: String(get('corte') == null ? '' : get('corte')).trim(),
+    fecha: parseDate(get('fecha')),
+    codCliente: String(get('codCliente') == null ? '' : get('codCliente')).trim(),
+    nombreCliente: String(get('nombreCliente') == null ? '' : get('nombreCliente')).trim(),
+    tipoId: String(get('tipoId') == null ? '' : get('tipoId')).trim(),
+    noId: String(get('noId') == null ? '' : get('noId')).trim(),
+    direccion: String(get('direccion') == null ? '' : get('direccion')).trim(),
+    depto: String(get('depto') == null ? '' : get('depto')).trim(),
+    estado: String(get('estado') == null ? '' : get('estado')).trim(),
+    factura: String(get('factura') == null ? '' : get('factura')).trim(),
+    full: fullRaw === 'SI' ? 'SI' : (fullRaw === 'NO' ? 'NO' : fullRaw),
+    noPed: String(get('noPed') == null ? '' : get('noPed')).trim(),
+    sku,
+    und: parseNum(get('und')),
+    valor: parseNum(get('valor')),
+    flete: parseNum(get('flete')),
+    pctFlete: parseNum(get('pctFlete')),
+    comision: parseNum(get('comision')),
+    pctComision: parseNum(get('pctComision')),
+    precioBI: parseNum(get('precioBI')),
+    reteIva: parseNum(get('reteIva')),
+    reteFuente: parseNum(get('reteFuente')),
+    precioFinal: parseNum(get('precioFinal')),
+    observaciones: obs,
+    marca
+  };
+}
+
+/* ===================== RENDER HELPERS ===================== */
+function emptyState(){
+  return `<div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <h3>Sin datos cargados</h3>
+    <p>Importa tu archivo Excel con las hojas MARCAS y VENTAS para comenzar.</p>
+    <button class="btn btn-primary" data-action="go-import">📥 Ir a Importar</button>
+  </div>`;
+}
+
+function kpiCard(label, value, sub, highlight){
+  return `<div class="kpi-card${highlight ? ' kpi-highlight' : ''}">
+    <div class="kpi-label">${escapeHTML(label)}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub">${sub}</div>
+  </div>`;
+}
+
+function renderBrandBars(data){
+  if(!data.length) return '<div class="empty-mini">Sin datos</div>';
+  const max = Math.max(...data.map(d => d.pct), 1);
+  return `<div class="bar-chart">${data.map(d => {
+    const color = BRAND_COLORS[d.brand] || '#8B9099';
+    return `<div class="bar-row">
+      <div class="bar-label" style="color:${color}">${escapeHTML(d.brand)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.pct/max*100).toFixed(1)}%;background:${color}"></div></div>
+      <div class="bar-value">${d.pct.toFixed(1)}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderMonthlyChart(data){
+  if(!data.length) return '<div class="empty-mini">Sin datos</div>';
+  const max = Math.max(...data.map(d => d[1]), 1);
+  return `<div class="vbar-chart">${data.map(([m, v]) => {
+    const parts = m.split('-');
+    const label = parts.length === 2 ? parts[1] + '/' + parts[0].slice(2) : m;
+    const h = Math.max(2, v/max*100);
+    return `<div class="vbar-col">
+      <div class="vbar-value">${fmtCOP(v)}</div>
+      <div class="vbar-track"><div class="vbar-fill" style="height:${h.toFixed(1)}%"></div></div>
+      <div class="vbar-label">${escapeHTML(label)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderPagination(current, total, ctx){
+  let html = '';
+  const add = (p, label, active, disabled) => {
+    html += `<button class="page-btn${active ? ' active' : ''}" data-page="${p}" data-ctx="${ctx}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+  };
+  add(current - 1, '‹', false, current <= 1);
+  const pages = [];
+  if(total <= 7){
+    for(let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if(current > 3) pages.push('...');
+    for(let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+    if(current < total - 2) pages.push('...');
+    pages.push(total);
+  }
+  for(const p of pages){
+    if(p === '...') html += `<span class="page-btn" style="cursor:default;opacity:.6">…</span>`;
+    else add(p, String(p), p === current, false);
+  }
+  add(current + 1, '›', false, current >= total);
+  return html;
+}
+
+/* ===================== PARETO HELPERS ===================== */
+function paretoCalc(items){
+  const total = items.reduce((s, x) => s + x.value, 0);
+  if(total <= 0) return { items: [], total: 0, vitalFew: 0, vitalPct: 0, count: 0 };
+  const sorted = items.filter(x => x.value > 0).sort((a, b) => b.value - a.value);
+  let cum = 0, vitalFew = 0;
+  const withCum = sorted.map((x, i) => {
+    cum += x.value;
+    const pct = (x.value / total) * 100;
+    const cumPct = (cum / total) * 100;
+    if(cumPct >= 80 && vitalFew === 0) vitalFew = i + 1;
+    return Object.assign({}, x, { pct, cumPct });
+  });
+  if(vitalFew === 0) vitalFew = withCum.length;
+  const count = withCum.length;
+  const vitalPct = (vitalFew / count) * 100;
+  return { items: withCum, total, vitalFew, vitalPct, count };
+}
+
+function getParetoPreset(){
+  const from = ui.paretoFrom, to = ui.paretoTo;
+  if(!from && !to) return 'all';
+  const today = new Date().toISOString().slice(0,10);
+  if(to === today){
+    const d30 = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+    const d90 = new Date(Date.now() - 90*86400000).toISOString().slice(0,10);
+    const ytd = new Date().getFullYear() + '-01-01';
+    if(from === d30) return '30d';
+    if(from === d90) return '90d';
+    if(from === ytd) return 'ytd';
+  }
+  return null;
+}
+
+function paretoProductsHero(pareto){
+  if(!pareto.items.length){
+    return `<div class="pareto-panel"><div class="pareto-head"><h3>Pareto · Productos (SKU)</h3></div><div class="empty-mini">Sin datos en el período</div></div>`;
+  }
+  const MAX_ROWS = 30;
+  const display = pareto.items.slice(0, MAX_ROWS);
+  const hasMore = pareto.items.length > MAX_ROWS;
+
+  let html = `<div class="pareto-panel">
+    <div class="pareto-head">
+      <h3>Pareto · Productos (SKU)</h3>
+      <div class="pareto-summary"><b class="hl">${pareto.vitalFew}</b> de <b>${pareto.count}</b> SKUs (<b>${pareto.vitalPct.toFixed(1)}%</b>) concentran el <b>80%</b> del ingreso</div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table compact">
+        <thead><tr>
+          <th class="pareto-rank">#</th>
+          <th>SKU</th>
+          <th>Marca</th>
+          <th class="num">Und</th>
+          <th class="num">Facturas</th>
+          <th class="num">Clientes</th>
+          <th class="num">Ingreso neto</th>
+          <th class="num">%</th>
+          <th class="num">% Acum.</th>
+          <th style="width:180px">Concentración</th>
+        </tr></thead><tbody>`;
+
+  let crossed80 = false;
+  display.forEach((item, i) => {
+    const isVital = item.cumPct <= 80 || (i === 0 && item.cumPct >= 80);
+    const rowClass = isVital ? 'pareto-vital' : '';
+    const bc = BRAND_COLORS[item.marca] || '#8B9099';
+    const name = getSkuName(item.label);
+    html += `<tr class="${rowClass}">
+      <td class="pareto-rank">${i+1}</td>
+      <td>
+        <code class="sku" title="${escapeHTML(name)}">${escapeHTML(item.label)}</code>
+        ${name ? `<div class="sku-name">${escapeHTML(name)}</div>` : ''}
+      </td>
+      <td><span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)};font-size:9.5px">${escapeHTML(item.marca)}</span></td>
+      <td class="num">${fmtNum(item.und)}</td>
+      <td class="num">${fmtNum(item.nFacturas)}</td>
+      <td class="num">${fmtNum(item.nClientes)}</td>
+      <td class="num">${fmtCOP(item.value)}</td>
+      <td class="num">${item.pct.toFixed(1)}%</td>
+      <td class="num"><b>${item.cumPct.toFixed(1)}%</b></td>
+      <td><div class="pareto-bar"><div class="pareto-bar-fill" style="width:${Math.min(100,item.cumPct).toFixed(1)}%"></div><div class="pareto-bar-80"></div></div></td>
+    </tr>`;
+    if(!crossed80 && item.cumPct >= 80){
+      crossed80 = true;
+      html += `<tr class="pareto-divider"><td colspan="10"><div class="pareto-divider-line"><span>LÍNEA 80%</span></div></td></tr>`;
+    }
+  });
+
+  html += `</tbody></table></div>`;
+  if(hasMore){
+    html += `<div class="pareto-more">+ ${pareto.items.length - MAX_ROWS} SKUs adicionales (${(100 - display[display.length-1].cumPct).toFixed(1)}% del ingreso restante)</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function paretoSimple(title, pareto, kind){
+  if(!pareto.items.length){
+    return `<div class="pareto-panel"><div class="pareto-head"><h3>${title}</h3></div><div class="empty-mini">Sin datos en el período</div></div>`;
+  }
+  const MAX_ROWS = 15;
+  const display = pareto.items.slice(0, MAX_ROWS);
+  const hasMore = pareto.items.length > MAX_ROWS;
+  const isBrand = kind === 'marcas';
+
+  let html = `<div class="pareto-panel">
+    <div class="pareto-head">
+      <h3>${title}</h3>
+      <div class="pareto-summary"><b class="hl">${pareto.vitalFew}</b> de <b>${pareto.count}</b> (<b>${pareto.vitalPct.toFixed(1)}%</b>) concentran el <b>80%</b></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table compact">
+        <thead><tr>
+          <th class="pareto-rank">#</th>
+          <th>${isBrand ? 'Marca' : 'Departamento'}</th>
+          ${isBrand ? '<th class="num">SKUs</th>' : ''}
+          <th class="num">Ingreso neto</th>
+          <th class="num">%</th>
+          <th class="num">% Acum.</th>
+          <th style="width:140px">Concentración</th>
+        </tr></thead><tbody>`;
+
+  let crossed80 = false;
+  display.forEach((item, i) => {
+    const isVital = item.cumPct <= 80 || (i === 0 && item.cumPct >= 80);
+    const rowClass = isVital ? 'pareto-vital' : '';
+    const bc = isBrand ? (BRAND_COLORS[item.label] || '#8B9099') : null;
+    const labelHtml = isBrand
+      ? `<span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)};font-size:9.5px">${escapeHTML(item.label)}</span>`
+      : escapeHTML(item.label);
+    html += `<tr class="${rowClass}">
+      <td class="pareto-rank">${i+1}</td>
+      <td>${labelHtml}</td>
+      ${isBrand ? `<td class="num">${fmtNum(item.nSkus)}</td>` : ''}
+      <td class="num">${fmtCOP(item.value)}</td>
+      <td class="num">${item.pct.toFixed(1)}%</td>
+      <td class="num"><b>${item.cumPct.toFixed(1)}%</b></td>
+      <td><div class="pareto-bar"><div class="pareto-bar-fill" style="width:${Math.min(100,item.cumPct).toFixed(1)}%"></div><div class="pareto-bar-80"></div></div></td>
+    </tr>`;
+    if(!crossed80 && item.cumPct >= 80){
+      crossed80 = true;
+      const span = isBrand ? 6 : 5;
+      html += `<tr class="pareto-divider"><td colspan="${span}"><div class="pareto-divider-line"><span>LÍNEA 80%</span></div></td></tr>`;
+    }
+  });
+
+  html += `</tbody></table></div>`;
+  if(hasMore){
+    html += `<div class="pareto-more">+ ${pareto.items.length - MAX_ROWS} adicionales</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/* ===================== RENDER: IMPORT ===================== */
+function renderImport(){
+  let html = `<div class="import-grid">
+    <div class="drop-zone" id="drop-zone">
+      <span class="drop-icon">📥</span>
+      <div class="drop-title">Arrastra tu archivo Excel o CSV</div>
+      <div class="drop-sub">Hojas: MARCAS y VENTAS · Formatos: .xlsx, .xls, .csv</div>
+    </div>
+    <div class="info-panel">
+      <h3>Estado actual</h3>
+      <ul class="info-list">
+        <li><span>Ventas cargadas</span><b>${fmtNum(state.ventas.length)}</b></li>
+        <li><span>Marcas en catálogo</span><b>${fmtNum(state.marcas.length)}</b></li>
+        <li><span>Archivo fuente</span><b>${escapeHTML(state.fileName || '—')}</b></li>
+        <li><span>Última importación</span><b>${state.lastImport ? new Date(state.lastImport).toLocaleString('es-CO') : '—'}</b></li>
+      </ul>
+    </div>
+  </div>`;
+
+  if(ui.preview){
+    const p = ui.preview;
+    html += `<div class="preview-panel">
+      <div class="preview-head">
+        <h3>Vista previa · ${escapeHTML(p.fileName)}</h3>
+        <div class="file">Hoja ventas: <b>${escapeHTML(p.ventasName || '—')}</b> · Hoja marcas: <b>${escapeHTML(p.marcasName || 'No detectada')}</b></div>
+      </div>`;
+
+    if(!p.marcasDetected){
+      html += `<div class="warning-box">
+        <b>⚠️ No se detectó hoja MARCAS</b>
+        Se usará detección por prefijo de SKU. Los SKUs que no coincidan con ninguna regla quedarán como <b>OTROS</b>.
+      </div>`;
+    }
+
+    html += `<div class="preview-metrics">
+      <div class="metric-card">
+        <div class="metric-label">Filas válidas</div>
+        <div class="metric-value">${fmtNum(p.validCount)}</div>
+      </div>
+      <div class="metric-card primary">
+        <div class="metric-label">Se importarán</div>
+        <div class="metric-value">${fmtNum(p.toImportCount)}</div>
+      </div>
+      <div class="metric-card warn">
+        <div class="metric-label">Repetidas (se importan igual)</div>
+        <div class="metric-value">${fmtNum(p.duplicateCount)}</div>
+      </div>
+    </div>`;
+
+    html += `<h4 style="margin-bottom:10px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px">Mapeo de columnas</h4>
+      <div class="mapping-grid">`;
+    for(const col of VENTAS_COLS){
+      const idx = p.mapping[col.key];
+      const header = idx >= 0 && idx < p.headers.length ? p.headers[idx] : null;
+      html += `<div class="mapping-item ${idx >= 0 ? 'ok' : 'missing'}">
+        <span class="map-key">${escapeHTML(col.names[0])}</span>
+        <span class="map-arrow">→</span>
+        <span class="map-val">${header ? escapeHTML(header) : 'No detectada'}</span>
+      </div>`;
+    }
+    html += `</div>`;
+
+    html += `<h4 style="margin-bottom:10px;font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px">Primeras 5 filas</h4>
+      <div class="table-wrap"><table class="data-table compact">
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>SKU</th><th>Marca</th><th class="num">Und</th><th class="num">Neto</th><th>Factura</th></tr></thead>
+        <tbody>`;
+    for(const r of p.previewRows){
+      const bc = BRAND_COLORS[r.marca] || '#8B9099';
+      html += `<tr>
+        <td>${formatDateCO(r.fecha)}</td>
+        <td>${escapeHTML(r.nombreCliente || '—')}</td>
+        <td><code>${escapeHTML(r.sku || '—')}</code></td>
+        <td><span class="brand-badge" style="color:${bc};background:${alpha(bc,0.13)};border-color:${alpha(bc,0.3)}">${escapeHTML(r.marca)}</span></td>
+        <td class="num">${fmtNum(r.und)}</td>
+        <td class="num">${fmtCOP(r.precioFinal)}</td>
+        <td><code>${escapeHTML(r.factura || '—')}</code></td>
+      </tr>`;
+    }
+    html += `</tbody></table></div>`;
+
+    html += `<div class="preview-actions">
+      <div class="radio-group">
+        <label><input type="radio" name="import-mode" value="replace" ${ui.importMode === 'replace' ? 'checked' : ''}> Reemplazar</label>
+        ${state.ventas.length ? `<label><input type="radio" name="import-mode" value="append" ${ui.importMode === 'append' ? 'checked' : ''}> Agregar al existente</label>` : ''}
+      </div>
+      <button class="btn btn-ghost" data-action="cancel-import">Cancelar</button>
+      <button class="btn btn-primary" data-action="confirm-import">✓ Confirmar (${fmtNum(p.toImportCount)} filas)</button>
+    </div>`;
+
+    html += `</div>`;
+  }
+
+  return html;
+}
+
+/* ===================== RENDER: DASHBOARD ===================== */
+function renderDashboard(){
+  const ventas = getVentasFiltradas();
+  if(!ventas.length){
+    if(!state.ventas.length) return emptyState();
+    return `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período filtrado</h3>
+      <p>Ajusta el filtro global de fechas en la barra superior o límpialo.</p>
+      <button class="btn btn-ghost" data-action="global-clear">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  let sumBruto = 0, sumCom = 0, sumFlete = 0, sumRet = 0, sumUnd = 0, sumUndFull = 0;
+  let sumNeto = 0, sumUtilidad = 0;
+  const facturas = new Set(), pedidos = new Set(), clientes = new Set(), skus = new Set();
+
+  for(const r of ventas){
+    const bruto = parseNum(r.valor);
+    const com = parseNum(r.comision);
+    const flete = parseNum(r.flete);
+    const ret = parseNum(r.reteIva) + parseNum(r.reteFuente);
+    const und = parseNum(r.und);
+    sumBruto += bruto; sumCom += com; sumFlete += flete; sumRet += ret;
+    sumUnd += und; if(r.full === 'SI') sumUndFull += und;
+    sumNeto += (bruto - ret);
+    sumUtilidad += parseNum(r.precioFinal);
+    if(r.factura) facturas.add(r.factura);
+    if(r.noPed) pedidos.add(r.noPed);
+    if(r.codCliente) clientes.add(r.codCliente);
+    if(r.sku) skus.add(r.sku);
+  }
+
+  const devFrom = ui.devFrom, devTo = ui.devTo;
+  let sumDev = 0, cntDev = 0, sumNetoDev = 0;
+  for(const r of ventas){
+    const inRange =
+      (!devFrom || (r.fecha && r.fecha >= devFrom)) &&
+      (!devTo   || (r.fecha && r.fecha <= devTo));
+    if(!inRange) continue;
+    sumNetoDev += parseNum(r.precioFinal);
+    if(/devoluc/i.test(r.observaciones || '')){
+      sumDev += parseNum(r.precioFinal);
+      cntDev++;
+    }
+  }
+  const pctDev = sumNetoDev > 0 ? (sumDev / sumNetoDev) * 100 : 0;
+  const devClass = cntDev === 0 ? 'ok' : (pctDev > 5 ? 'alert' : (pctDev > 2 ? 'warn' : ''));
+
+  let devPeriodLabel = 'Período completo';
+  if(devFrom && devTo) devPeriodLabel = `${formatDateCO(devFrom)} → ${formatDateCO(devTo)}`;
+  else if(devFrom)     devPeriodLabel = `Desde ${formatDateCO(devFrom)}`;
+  else if(devTo)       devPeriodLabel = `Hasta ${formatDateCO(devTo)}`;
+
+  const nPedidos = Math.max(facturas.size, pedidos.size);
+  const nClientes = clientes.size;
+  const ticket = nClientes > 0 ? sumNeto / nClientes : 0;
+  const pctFull = sumUnd > 0 ? (sumUndFull / sumUnd) * 100 : 0;
+  const pctCom = sumNeto > 0 ? (sumCom / sumNeto) * 100 : 0;
+  const pctFlete = sumNeto > 0 ? (sumFlete / sumNeto) * 100 : 0;
+
+  const mix = {};
+  for(const r of ventas){
+    const b = r.marca || 'OTROS';
+    mix[b] = (mix[b] || 0) + parseNum(r.precioFinal);
+  }
+  const totalMix = Object.values(mix).reduce((a,b)=>a+b, 0);
+  const mixArr = Object.entries(mix).map(([brand, val]) => ({
+    brand, value: val, pct: totalMix > 0 ? val/totalMix*100 : 0
+  })).sort((a,b) => b.value - a.value);
+
+  const monthly = {};
+  for(const r of ventas){
+    if(!r.fecha) continue;
+    const m = r.fecha.slice(0,7);
+    monthly[m] = (monthly[m] || 0) + parseNum(r.precioBI);
+  }
+  const monthlyArr = Object.entries(monthly).sort((a,b) => a[0].localeCompare(b[0]));
+
+  const byC = {};
+  for(const r of ventas){
+    const k = r.codCliente || r.nombreCliente || '—';
+    if(!byC[k]) byC[k] = { name:r.nombreCliente, depto:r.depto, facs:new Set(), neto:0 };
+    if(r.factura) byC[k].facs.add(r.factura);
+    byC[k].neto += parseNum(r.precioFinal);
+  }
+  const topClients = Object.entries(byC).map(([code, v]) => ({
+    code, name: v.name || code, depto: v.depto, pedidos: v.facs.size, neto: v.neto
+  })).sort((a,b) => b.neto - a.neto).slice(0,5);
+
+  const byS = {};
+  for(const r of ventas){
+    if(!r.sku) continue;
+    if(!byS[r.sku]) byS[r.sku] = { sku:r.sku, marca:r.marca, und:0, neto:0 };
+    byS[r.sku].und += parseNum(r.und);
+    byS[r.sku].neto += parseNum(r.precioFinal);
+  }
+  const topProds = Object.values(byS).sort((a,b) => b.neto - a.neto).slice(0,5);
+
+  let html = `<div class="kpi-grid">
+    ${kpiCard('Ventas netas', fmtCOP(sumNeto), `Bruto ${fmtCOP(sumBruto)}`)}
+    ${kpiCard('Pedidos', fmtNum(nPedidos), `${fmtNum(facturas.size)} facturas · ${fmtNum(skus.size)} SKUs`)}
+    ${kpiCard('Clientes', fmtNum(nClientes), `Ticket prom. ${fmtCOP(ticket)}`)}
+    ${kpiCard('Unidades', fmtNum(sumUnd), `${pctFull.toFixed(1)}% Full`)}
+    ${kpiCard('Comisiones ML', fmtCOP(sumCom), `${pctCom.toFixed(1)}% del neto`)}
+    ${kpiCard('Fletes', fmtCOP(sumFlete), `${pctFlete.toFixed(1)}% del neto`)}
+    ${kpiCard('Retenciones', fmtCOP(sumRet), `IVA + Fuente`)}
+    ${kpiCard('Utilidad estimada', fmtCOP(sumUtilidad), `Neto − comisiones − fletes`, true)}
+    <div class="kpi-dev ${devClass}">
+      <div class="kpi-dev-left">
+        <span class="kpi-dev-icon">${cntDev > 0 ? '↩️' : '✓'}</span>
+        <div>
+          <div class="kpi-label">Devoluciones</div>
+          <div class="kpi-value">${fmtCOP(sumDev)}</div>
+          <div class="kpi-dev-period">${devPeriodLabel}</div>
+        </div>
+      </div>
+      <div class="kpi-dev-right">
+        <div class="kpi-dev-dates">
+          <span>Desde</span>
+          <input type="date" data-filter="dev-from" value="${escapeHTML(ui.devFrom)}">
+          <span>Hasta</span>
+          <input type="date" data-filter="dev-to" value="${escapeHTML(ui.devTo)}">
+          ${(ui.devFrom || ui.devTo) ? `<button class="kpi-dev-clear" data-action="dev-clear" title="Limpiar filtro">×</button>` : ''}
+        </div>
+        <div class="kpi-dev-stat">
+          <div class="kpi-label">% de las ventas</div>
+          <div class="kpi-value" style="color:${pctDev > 5 ? '#ff6b6b' : pctDev > 0 ? 'var(--gold)' : 'var(--teal)'}">${pctDev.toFixed(2)}%</div>
+        </div>
+        <div class="kpi-dev-stat">
+          <div class="kpi-label">Casos</div>
+          <div class="kpi-value">${fmtNum(cntDev)}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="chart-grid">
+    <div class="panel"><h3 class="panel-title">Mix de marcas</h3>${renderBrandBars(mixArr)}</div>
+    <div class="panel"><h3 class="panel-title">Evolución mensual · Precio B/I</h3>${renderMonthlyChart(monthlyArr)}</div>
+  </div>`;
+
+  html += `<div class="chart-grid">
+    <div class="panel"><h3 class="panel-title">Top 5 clientes</h3><div class="top-list">`;
+  if(!topClients.length) html += '<div class="empty-mini">Sin datos</div>';
+  else topClients.forEach((c, i) => {
+    html += `<div class="top-item">
+      <div class="top-rank">${i+1}</div>
+      <div class="top-info">
+        <div class="top-name">${escapeHTML(c.name)}</div>
+        <div class="top-meta">${fmtNum(c.pedidos)} pedidos · ${escapeHTML(c.depto || '—')}</div>
+      </div>
+      <div class="top-value">${fmtCOP(c.neto)}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  html += `<div class="panel"><h3 class="panel-title">Top 5 productos</h3><div class="top-list">`;
+  if(!topProds.length) html += '<div class="empty-mini">Sin datos</div>';
+  else topProds.forEach((p, i) => {
+    const bc = BRAND_COLORS[p.marca] || '#8B9099';
+    const pname = getSkuName(p.sku);
+    html += `<div class="top-item">
+      <div class="top-rank">${i+1}</div>
+      <div class="top-info">
+        <div class="top-name"><code style="font-size:11.5px">${escapeHTML(p.sku)}</code> <span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)};font-size:9.5px">${escapeHTML(p.marca)}</span></div>
+        ${pname ? `<div class="top-meta" title="${escapeHTML(pname)}" style="overflow:hidden;text-overflow:ellipsis">${escapeHTML(pname)}</div>` : ''}
+        <div class="top-meta">${fmtNum(p.und)} unidades</div>
+      </div>
+      <div class="top-value">${fmtCOP(p.neto)}</div>
+    </div>`;
+  });
+  html += `</div></div></div>`;
+
+  return html;
+}
+
+/* ===================== RENDER: PARETO 80/20 ===================== */
+function renderPareto(){
+  if(!state.ventas.length) return emptyState();
+
+  const baseVentas = getVentasFiltradas();
+  const from = ui.paretoFrom, to = ui.paretoTo;
+  const filtered = baseVentas.filter(r => {
+    if(from && (!r.fecha || r.fecha < from)) return false;
+    if(to   && (!r.fecha || r.fecha > to))   return false;
+    return true;
+  });
+
+  const productsMap = {}, deptosMap = {}, brandsMap = {};
+  let totalNeto = 0, totalUnd = 0;
+  const facturas = new Set(), skuSet = new Set();
+
+  for(const r of filtered){
+    const neto = parseNum(r.precioFinal);
+    const und  = parseNum(r.und);
+    totalNeto += neto; totalUnd += und;
+    if(r.factura) facturas.add(r.factura);
+
+    if(r.sku){
+      skuSet.add(r.sku);
+      if(!productsMap[r.sku]) productsMap[r.sku] = {
+        label:r.sku, marca:r.marca, value:0, und:0,
+        _facs:new Set(), _clis:new Set()
+      };
+      const p = productsMap[r.sku];
+      p.value += neto; p.und += und;
+      if(r.factura)     p._facs.add(r.factura);
+      if(r.codCliente)  p._clis.add(r.codCliente);
+    }
+    if(r.depto){
+      if(!deptosMap[r.depto]) deptosMap[r.depto] = { label:r.depto, value:0 };
+      deptosMap[r.depto].value += neto;
+    }
+    if(r.marca){
+      if(!brandsMap[r.marca]) brandsMap[r.marca] = { label:r.marca, value:0, und:0, _skus:new Set() };
+      brandsMap[r.marca].value += neto;
+      brandsMap[r.marca].und   += und;
+      if(r.sku) brandsMap[r.marca]._skus.add(r.sku);
+    }
+  }
+  for(const k in productsMap){
+    productsMap[k].nFacturas = productsMap[k]._facs.size;
+    productsMap[k].nClientes = productsMap[k]._clis.size;
+    delete productsMap[k]._facs; delete productsMap[k]._clis;
+  }
+  for(const k in brandsMap){
+    brandsMap[k].nSkus = brandsMap[k]._skus.size;
+    delete brandsMap[k]._skus;
+  }
+
+  const productsP = paretoCalc(Object.values(productsMap));
+  const deptosP   = paretoCalc(Object.values(deptosMap));
+  const brandsP   = paretoCalc(Object.values(brandsMap));
+
+  const preset = getParetoPreset();
+  const isPreset = (k) => preset === k ? 'active' : '';
+
+  let periodLabel = 'Período completo';
+  if(from && to) periodLabel = `${formatDateCO(from)} → ${formatDateCO(to)}`;
+  else if(from)  periodLabel = `Desde ${formatDateCO(from)}`;
+  else if(to)    periodLabel = `Hasta ${formatDateCO(to)}`;
+
+  let html = `<div class="pareto-filter-bar">
+    <div class="pareto-filter-presets">
+      <span class="pareto-filter-label">Período</span>
+      <button class="btn btn-ghost ${isPreset('30d')}"  data-action="pareto-preset" data-preset="30d">30d</button>
+      <button class="btn btn-ghost ${isPreset('90d')}"  data-action="pareto-preset" data-preset="90d">90d</button>
+      <button class="btn btn-ghost ${isPreset('ytd')}"  data-action="pareto-preset" data-preset="ytd">YTD</button>
+      <button class="btn btn-ghost ${isPreset('all')}"  data-action="pareto-preset" data-preset="all">Todo</button>
+    </div>
+    <div class="pareto-filter-dates">
+      <label>Desde <input type="date" data-filter="pareto-from" value="${escapeHTML(ui.paretoFrom)}"></label>
+      <label>Hasta <input type="date" data-filter="pareto-to"   value="${escapeHTML(ui.paretoTo)}"></label>
+    </div>
+    <div class="pareto-filter-info">
+      <b>${fmtNum(filtered.length)}</b> de ${fmtNum(baseVentas.length)} filas · ${periodLabel}
+    </div>
+  </div>`;
+
+  if(!filtered.length){
+    const withDate = baseVentas.filter(r => r.fecha);
+    const dates = withDate.map(r => r.fecha).sort();
+    const minDate = dates[0] || '';
+    const maxDate = dates[dates.length-1] || '';
+    return html + `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período seleccionado</h3>
+      <p>Ajusta el rango de fechas o haz clic en <b>Todo</b> para ver el histórico completo.</p>
+      ${minDate && maxDate
+        ? `<p style="font-size:12px;color:var(--dim);margin-top:8px;padding:10px 14px;background:var(--panel2);border-radius:8px;border:1px solid var(--border);max-width:420px">
+            📅 Tus datos van de <b style="color:var(--gold)">${formatDateCO(minDate)}</b> a <b style="color:var(--gold)">${formatDateCO(maxDate)}</b><br>
+            <span style="font-size:11px">${fmtNum(withDate.length)} de ${fmtNum(baseVentas.length)} filas tienen fecha válida</span>
+          </p>`
+        : `<p style="font-size:12px;color:#ff6b6b;margin-top:8px;padding:10px 14px;background:rgba(255,107,107,.08);border-radius:8px;border:1px solid rgba(255,107,107,.3);max-width:420px">
+            ⚠️ <b>No se detectaron fechas válidas en los datos.</b><br>
+            <span style="font-size:11px">Verifica que la columna <code>FECHA</code> tenga un formato reconocible (2026-01-01, 01/01/2026, etc.).</span>
+          </p>`}
+      <button class="btn btn-ghost" data-action="pareto-preset" data-preset="all">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  const avgTicketSku = productsP.count > 0 ? totalNeto / productsP.count : 0;
+  const pctIngresoVital = productsP.items
+    .slice(0, productsP.vitalFew)
+    .reduce((s, x) => s + x.value, 0);
+  const concentracionVital = totalNeto > 0 ? (pctIngresoVital / totalNeto) * 100 : 0;
+
+  html += `<div class="kpi-grid" style="margin-bottom:16px">
+    ${kpiCard('Ingreso neto', fmtCOP(totalNeto), periodLabel)}
+    ${kpiCard('SKUs activos', fmtNum(skuSet.size), `${fmtNum(facturas.size)} facturas · ${fmtNum(totalUnd)} und`)}
+    ${kpiCard('SKUs vitales', fmtNum(productsP.vitalFew), `${productsP.vitalPct.toFixed(1)}% del catálogo`)}
+    ${kpiCard('Concentración vital', concentracionVital.toFixed(1) + '%', `del ingreso · prom ${fmtCOP(avgTicketSku)}/SKU`, true)}
+  </div>`;
+
+  html += `<div class="pareto-insight-grid">
+    <div class="pareto-insight" style="border-color:rgba(216,178,95,.4);background:linear-gradient(180deg,var(--panel),rgba(216,178,95,.05))">
+      <div class="pareto-insight-icon">📦</div>
+      <div class="pareto-insight-body">
+        <div class="pareto-insight-title">Productos · SKU</div>
+        <div class="pareto-insight-text"><b>${productsP.vitalFew}</b> de <b>${productsP.count}</b> (<b>${productsP.vitalPct.toFixed(1)}%</b>) concentran el <b>80%</b> del ingreso</div>
+      </div>
+    </div>
+    <div class="pareto-insight">
+      <div class="pareto-insight-icon">🏷️</div>
+      <div class="pareto-insight-body">
+        <div class="pareto-insight-title">Marcas</div>
+        <div class="pareto-insight-text"><b>${brandsP.vitalFew}</b> de <b>${brandsP.count}</b> (<b>${brandsP.vitalPct.toFixed(1)}%</b>) concentran el <b>80%</b> del ingreso</div>
+      </div>
+    </div>
+    <div class="pareto-insight">
+      <div class="pareto-insight-icon">📍</div>
+      <div class="pareto-insight-body">
+        <div class="pareto-insight-title">Departamentos</div>
+        <div class="pareto-insight-text"><b>${deptosP.vitalFew}</b> de <b>${deptosP.count}</b> (<b>${deptosP.vitalPct.toFixed(1)}%</b>) concentran el <b>80%</b> del ingreso</div>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="pareto-grid">
+    <div style="grid-column:1/-1">${paretoProductsHero(productsP)}</div>
+  </div>`;
+
+  html += `<div class="pareto-grid">
+    ${paretoSimple('Pareto · Marcas', brandsP, 'marcas')}
+    ${paretoSimple('Pareto · Departamentos', deptosP, 'departamentos')}
+  </div>`;
+
+  return html;
+}
+
+/* ===================== RENDER: VENTAS ===================== */
+function renderVentas(){
+  if(!state.ventas.length) return emptyState();
+
+  const deptos = [...new Set(getVentasFiltradas().map(r => r.depto).filter(Boolean))].sort();
+
+  let html = `<div class="view-head">
+    <h2>Ventas</h2>
+    <div class="filters">
+      <input type="text" placeholder="Buscar cliente, SKU, factura, pedido…" value="${escapeHTML(ui.ventasSearch)}" data-filter="ventas-search">
+      <select data-filter="ventas-brand">
+        <option value="">Todas las marcas</option>
+        ${BRAND_ORDER.map(b => `<option value="${b}" ${ui.ventasBrand === b ? 'selected' : ''}>${b}</option>`).join('')}
+      </select>
+      <select data-filter="ventas-depto">
+        <option value="">Todos los deptos</option>
+        ${deptos.map(d => `<option value="${escapeHTML(d)}" ${ui.ventasDepto === d ? 'selected' : ''}>${escapeHTML(d)}</option>`).join('')}
+      </select>
+      <select data-filter="ventas-full">
+        <option value="">Full (todos)</option>
+        <option value="SI" ${ui.ventasFull === 'SI' ? 'selected' : ''}>Solo FULL</option>
+        <option value="NO" ${ui.ventasFull === 'NO' ? 'selected' : ''}>Solo NO FULL</option>
+      </select>
+    </div>
+  </div>
+  <div id="ventas-content">${renderVentasContent()}</div>`;
+  return html;
+}
+
+function renderVentasContent(){
+  const baseVentas = getVentasFiltradas();
+  const search = ui.ventasSearch.toLowerCase();
+  const rows = baseVentas.filter(r => {
+    if(ui.ventasBrand && r.marca !== ui.ventasBrand) return false;
+    if(ui.ventasDepto && r.depto !== ui.ventasDepto) return false;
+    if(ui.ventasFull && r.full !== ui.ventasFull) return false;
+    if(search){
+      const blob = `${r.nombreCliente||''} ${r.sku||''} ${getSkuName(r.sku)||''} ${r.factura||''} ${r.noPed||''} ${r.cod||''} ${r.codCliente||''}`.toLowerCase();
+      if(!blob.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const pageSize = 50;
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if(ui.ventasPage > totalPages) ui.ventasPage = totalPages;
+  if(ui.ventasPage < 1) ui.ventasPage = 1;
+  const start = (ui.ventasPage - 1) * pageSize;
+  const pageRows = rows.slice(start, start + pageSize);
+
+  let sumNeto = 0, sumBruto = 0;
+  for(const r of rows){ sumNeto += parseNum(r.precioFinal); sumBruto += parseNum(r.valor); }
+
+  let html = `<div class="table-wrap"><table class="data-table">
+    <thead><tr>
+      <th>Fecha</th><th>Cliente</th><th>SKU</th><th>Marca</th><th class="num">Und</th>
+      <th class="num">Valor</th><th class="num">Flete</th><th class="num">Comisión</th>
+      <th class="num">Retenciones</th><th class="num">Precio final</th>
+      <th>Depto</th><th>Full</th><th>Factura</th>
+    </tr></thead><tbody>`;
+
+  if(!pageRows.length){
+    html += `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--dim)">Sin resultados para los filtros actuales</td></tr>`;
+  }
+  for(const r of pageRows){
+    const ret = parseNum(r.reteIva) + parseNum(r.reteFuente);
+    const bc = BRAND_COLORS[r.marca] || '#8B9099';
+    const initials = (r.nombreCliente || '?').split(/\s+/).map(w => w[0] || '').join('').slice(0,2).toUpperCase() || '?';
+    const sname = getSkuName(r.sku);
+    html += `<tr>
+      <td>${formatDateCO(r.fecha)}</td>
+      <td><div class="cell-client">
+        <span class="avatar" style="background:${alpha(bc,.18)};color:${bc}">${escapeHTML(initials)}</span>
+        <div style="min-width:0"><div class="client-name">${escapeHTML(r.nombreCliente || '—')}</div><div class="client-sub">${escapeHTML(r.codCliente || '')}</div></div>
+      </div></td>
+      <td>
+        <code class="sku" title="${escapeHTML(sname)}">${escapeHTML(r.sku || '—')}</code>
+        ${sname ? `<div class="sku-name">${escapeHTML(sname)}</div>` : ''}
+      </td>
+      <td><span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)}">${escapeHTML(r.marca)}</span></td>
+      <td class="num">${fmtNum(r.und)}</td>
+      <td class="num">${fmtCOP(r.valor)}</td>
+      <td class="num">${fmtCOP(r.flete)}</td>
+      <td class="num">${fmtCOP(r.comision)}</td>
+      <td class="num">${fmtCOP(ret)}</td>
+      <td class="num strong">${fmtCOP(r.precioFinal)}</td>
+      <td>${escapeHTML(r.depto || '—')}</td>
+      <td>${r.full === 'SI' ? '<span class="pill pill-teal">FULL</span>' : '<span class="pill pill-dim">—</span>'}</td>
+      <td><code style="font-size:11px">${escapeHTML(r.factura || '—')}</code></td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  html += `<div class="table-footer">
+    <div>Mostrando <b>${rows.length ? start+1 : 0}–${Math.min(start+pageSize, rows.length)}</b> de <b>${fmtNum(rows.length)}</b> · Neto <b>${fmtCOP(sumNeto)}</b> · Bruto <b>${fmtCOP(sumBruto)}</b></div>
+    <div class="pagination">${renderPagination(ui.ventasPage, totalPages, 'ventas')}</div>
+  </div>`;
+
+  return html;
+}
+
+/* ===================== RENDER: CLIENTES ===================== */
+function renderClientes(){
+  const ventas = getVentasFiltradas();
+  if(!ventas.length){
+    if(!state.ventas.length) return emptyState();
+    return `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período filtrado</h3>
+      <p>Ajusta el filtro global de fechas en la barra superior o límpialo.</p>
+      <button class="btn btn-ghost" data-action="global-clear">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  const byC = {};
+  for(const r of ventas){
+    const key = r.codCliente || r.nombreCliente || '—';
+    if(!byC[key]) byC[key] = {
+      code: key, nombre: r.nombreCliente, noId: r.noId, tipoId: r.tipoId,
+      depto: r.depto, facs: new Set(), pedidos: new Set(), und: 0, neto: 0,
+      marcas: new Set(), ultima: ''
+    };
+    const c = byC[key];
+    if(r.factura) c.facs.add(r.factura);
+    if(r.noPed) c.pedidos.add(r.noPed);
+    c.und += parseNum(r.und);
+    c.neto += parseNum(r.precioFinal);
+    if(r.marca) c.marcas.add(r.marca);
+    if(r.fecha && r.fecha > c.ultima) c.ultima = r.fecha;
+    if(!c.nombre && r.nombreCliente) c.nombre = r.nombreCliente;
+    if(!c.depto && r.depto) c.depto = r.depto;
+  }
+
+  const search = ui.clientesSearch.toLowerCase();
+  const clients = Object.values(byC).filter(c => {
+    if(!search) return true;
+    return `${c.nombre||''} ${c.noId||''} ${c.depto||''} ${c.code||''}`.toLowerCase().includes(search);
+  }).sort((a,b) => b.neto - a.neto);
+
+  let html = `<div class="view-head">
+    <h2>Clientes · ${fmtNum(clients.length)}</h2>
+    <div class="filters">
+      <input type="text" placeholder="Buscar por nombre, NIT, depto…" value="${escapeHTML(ui.clientesSearch)}" data-filter="clientes-search">
+    </div>
+  </div>`;
+
+  html += `<div class="table-wrap"><table class="data-table">
+    <thead><tr>
+      <th>Cliente</th><th>ID</th><th>Depto</th><th class="num">Pedidos</th><th class="num">Facturas</th>
+      <th class="num">Und</th><th class="num">Venta neta</th><th>Última compra</th><th>Marcas</th>
+    </tr></thead><tbody>`;
+
+  if(!clients.length) html += `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--dim)">Sin clientes que coincidan</td></tr>`;
+
+  for(const c of clients){
+    const brandList = [...c.marcas];
+    html += `<tr>
+      <td><div class="client-name">${escapeHTML(c.nombre || '—')}</div><div class="client-sub">${escapeHTML(c.code || '')}</div></td>
+      <td>${escapeHTML(c.tipoId || '')} ${escapeHTML(c.noId || '—')}</td>
+      <td>${escapeHTML(c.depto || '—')}</td>
+      <td class="num">${fmtNum(c.pedidos.size)}</td>
+      <td class="num">${fmtNum(c.facs.size)}</td>
+      <td class="num">${fmtNum(c.und)}</td>
+      <td class="num strong">${fmtCOP(c.neto)}</td>
+      <td>${formatDateCO(c.ultima)}</td>
+      <td>${brandList.map(b => {
+        const bc = BRAND_COLORS[b] || '#8B9099';
+        return `<span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)};font-size:9px;margin-right:3px">${escapeHTML(b)}</span>`;
+      }).join('')}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  return html;
+}
+
+/* ===================== RENDER: PRODUCTOS ===================== */
+function renderProductos(){
+  const ventas = getVentasFiltradas();
+  if(!ventas.length){
+    if(!state.ventas.length) return emptyState();
+    return `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período filtrado</h3>
+      <p>Ajusta el filtro global de fechas en la barra superior o límpialo.</p>
+      <button class="btn btn-ghost" data-action="global-clear">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  const byS = {};
+  for(const r of ventas){
+    if(!r.sku) continue;
+    if(!byS[r.sku]) byS[r.sku] = {
+      sku: r.sku, marca: r.marca, und: 0, pedidos: new Set(),
+      clientes: new Set(), bruto: 0, neto: 0, ultima: ''
+    };
+    const p = byS[r.sku];
+    p.und += parseNum(r.und);
+    if(r.noPed) p.pedidos.add(r.noPed);
+    if(r.codCliente) p.clientes.add(r.codCliente);
+    p.bruto += parseNum(r.valor);
+    p.neto += parseNum(r.precioFinal);
+    if(r.fecha && r.fecha > p.ultima) p.ultima = r.fecha;
+  }
+
+  const search = ui.productosSearch.toLowerCase();
+  const products = Object.values(byS).filter(p => {
+    if(ui.productosBrand && p.marca !== ui.productosBrand) return false;
+    if(search){
+      const name = getSkuName(p.sku).toLowerCase();
+      if(!p.sku.toLowerCase().includes(search) && !name.includes(search)) return false;
+    }
+    return true;
+  }).sort((a,b) => b.neto - a.neto);
+
+  let html = `<div class="view-head">
+    <h2>Productos · ${fmtNum(products.length)}</h2>
+    <div class="filters">
+      <input type="text" placeholder="Buscar SKU o nombre…" value="${escapeHTML(ui.productosSearch)}" data-filter="productos-search">
+      <select data-filter="productos-brand">
+        <option value="">Todas las marcas</option>
+        ${BRAND_ORDER.map(b => `<option value="${b}" ${ui.productosBrand === b ? 'selected' : ''}>${b}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+
+  html += `<div class="table-wrap"><table class="data-table">
+    <thead><tr>
+      <th>SKU</th><th>Marca</th><th class="num">Unidades</th><th class="num">Pedidos</th>
+      <th class="num">Clientes</th><th class="num">Venta bruta</th><th class="num">Venta neta</th><th>Última venta</th>
+    </tr></thead><tbody>`;
+
+  if(!products.length) html += `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--dim)">Sin productos que coincidan</td></tr>`;
+
+  for(const p of products){
+    const bc = BRAND_COLORS[p.marca] || '#8B9099';
+    const name = getSkuName(p.sku);
+    html += `<tr>
+      <td>
+        <code class="sku" title="${escapeHTML(name)}">${escapeHTML(p.sku)}</code>
+        ${name ? `<div class="sku-name">${escapeHTML(name)}</div>` : ''}
+      </td>
+      <td><span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)}">${escapeHTML(p.marca)}</span></td>
+      <td class="num">${fmtNum(p.und)}</td>
+      <td class="num">${fmtNum(p.pedidos.size)}</td>
+      <td class="num">${fmtNum(p.clientes.size)}</td>
+      <td class="num">${fmtCOP(p.bruto)}</td>
+      <td class="num strong">${fmtCOP(p.neto)}</td>
+      <td>${formatDateCO(p.ultima)}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+/* ===================== RENDER: REPORTES ===================== */
+function renderReportes(){
+  const ventas = getVentasFiltradas();
+  if(!ventas.length){
+    if(!state.ventas.length) return emptyState();
+    return `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período filtrado</h3>
+      <p>Ajusta el filtro global de fechas en la barra superior o límpialo.</p>
+      <button class="btn btn-ghost" data-action="global-clear">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  const mix = {};
+  let totalMix = 0;
+  for(const r of ventas){
+    const b = r.marca || 'OTROS';
+    mix[b] = (mix[b] || 0) + parseNum(r.precioFinal);
+    totalMix += parseNum(r.precioFinal);
+  }
+
+  const mixData = ['TOTAL','DCK','FORCE','JASIC','AIR FORCE'].map(b => {
+    const val = mix[b] || 0;
+    const pct = totalMix > 0 ? val/totalMix*100 : 0;
+    const goal = BRAND_GOALS[b] || 0;
+    return { brand:b, pct, goal, gap: pct - goal, color: BRAND_COLORS[b] };
+  });
+
+  let html = `<div class="panel" style="margin-bottom:16px">
+    <h3 class="panel-title">Mix actual vs meta 2026-2027</h3>
+    <table class="mix-table"><thead><tr>
+      <th>Marca</th><th>Actual</th><th>Meta</th><th>Brecha</th><th style="width:180px">Mix</th>
+    </tr></thead><tbody>`;
+  for(const d of mixData){
+    const gapClass = d.gap >= 0 ? 'delta-up' : 'delta-down';
+    const gapIcon = d.gap >= 0 ? '▲' : '▼';
+    html += `<tr>
+      <td><span class="brand-badge" style="color:${d.color};background:${alpha(d.color,.13)};border-color:${alpha(d.color,.3)}">${d.brand}</span></td>
+      <td><b>${d.pct.toFixed(1)}%</b></td>
+      <td style="color:var(--dim)">${d.goal}%</td>
+      <td class="${gapClass}">${gapIcon} ${Math.abs(d.gap).toFixed(1)} pp</td>
+      <td><div class="mix-bar"><div class="mix-bar-fill" style="width:${Math.min(100,d.pct).toFixed(1)}%;background:${d.color}"></div></div></td>
+    </tr>`;
+  }
+  html += `</tbody></table></div>`;
+
+  const monthly = {};
+  for(const r of ventas){
+    if(!r.fecha) continue;
+    const m = r.fecha.slice(0,7);
+    monthly[m] = (monthly[m] || 0) + parseNum(r.precioBI);
+  }
+  const monthlyArr = Object.entries(monthly).sort((a,b) => a[0].localeCompare(b[0]));
+  html += `<div class="panel" style="margin-bottom:16px">
+    <h3 class="panel-title">Evolución mensual · Precio B/I</h3>
+    ${renderMonthlyChart(monthlyArr)}
+  </div>`;
+
+  const depto = {};
+  for(const r of ventas){
+    const d = r.depto || '—';
+    depto[d] = (depto[d] || 0) + parseNum(r.precioFinal);
+  }
+  const deptoArr = Object.entries(depto).map(([d,v]) => ({depto:d, neto:v}))
+    .sort((a,b) => b.neto - a.neto).slice(0,10);
+  const maxDepto = Math.max(...deptoArr.map(d => d.neto), 1);
+
+  html += `<div class="chart-grid">
+    <div class="panel"><h3 class="panel-title">Top 10 departamentos</h3><div class="bar-chart">`;
+  for(const d of deptoArr){
+    html += `<div class="bar-row">
+      <div class="bar-label">${escapeHTML(d.depto)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.neto/maxDepto*100).toFixed(1)}%;background:var(--teal)"></div></div>
+      <div class="bar-value">${fmtCOP(d.neto)}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+
+  const fin = {};
+  for(const r of ventas){
+    const b = r.marca || 'OTROS';
+    if(!fin[b]) fin[b] = { pedidos:new Set(), clientes:new Set(), und:0, bruto:0, neto:0 };
+    const f = fin[b];
+    if(r.noPed || r.factura) f.pedidos.add(r.noPed || r.factura);
+    if(r.codCliente) f.clientes.add(r.codCliente);
+    f.und += parseNum(r.und);
+    f.bruto += parseNum(r.valor);
+    f.neto += parseNum(r.precioFinal);
+  }
+  html += `<div class="panel"><h3 class="panel-title">Detalle financiero por marca</h3>
+    <div class="table-wrap" style="border:none"><table class="data-table" style="min-width:0">
+    <thead><tr>
+      <th>Marca</th><th class="num">Pedidos</th><th class="num">Clientes</th><th class="num">Und</th>
+      <th class="num">Bruto</th><th class="num">Neto</th><th class="num">% Neto</th>
+    </tr></thead><tbody>`;
+  const finArr = Object.entries(fin).sort((a,b) => b[1].neto - a[1].neto);
+  for(const [b, f] of finArr){
+    const bc = BRAND_COLORS[b] || '#8B9099';
+    const pct = totalMix > 0 ? f.neto/totalMix*100 : 0;
+    html += `<tr>
+      <td><span class="brand-badge" style="color:${bc};background:${alpha(bc,.13)};border-color:${alpha(bc,.3)}">${escapeHTML(b)}</span></td>
+      <td class="num">${fmtNum(f.pedidos.size)}</td>
+      <td class="num">${fmtNum(f.clientes.size)}</td>
+      <td class="num">${fmtNum(f.und)}</td>
+      <td class="num">${fmtCOP(f.bruto)}</td>
+      <td class="num strong">${fmtCOP(f.neto)}</td>
+      <td class="num">${pct.toFixed(1)}%</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div></div></div>`;
+
+  return html;
+}
+
+/* ===================== RENDER: MELI CAPRIS ===================== */
+function renderMeliCapris(){
+  const ventas = getVentasFiltradas();
+  if(!ventas.length){
+    if(!state.ventas.length) return emptyState();
+    return `<div class="empty-state">
+      <div class="empty-icon">🗓️</div>
+      <h3>Sin ventas en el período filtrado</h3>
+      <p>Ajusta el filtro global de fechas en la barra superior o límpialo.</p>
+      <button class="btn btn-ghost" data-action="global-clear">Ver todo el histórico</button>
+    </div>`;
+  }
+
+  // Transformar datos al formato MELI
+  meliState.data = ventas.map(r => ({
+    fecha: r.fecha || '',
+    sku: r.sku || '',
+    descripcion: getSkuName(r.sku) || '',
+    marca: r.marca || 'OTROS',
+    unidades: parseNum(r.und),
+    valor: parseNum(r.valor),
+    precio_final: parseNum(r.precioFinal),
+    departamento: r.depto || 'SIN DEPARTAMENTO',
+    full: r.full || ''
+  })).filter(d => d.sku);
+  meliState.filtered = meliState.data.slice();
+
+  return `
+    <div class="meli-dashboard">
+      <div class="header-meli">
+        <h1>🔬 MELI CAPRIS · Análisis de SKU</h1>
+        <span class="meli-info">✅ ${fmtNum(meliState.data.length)} registros · filtro global de fechas activo</span>
+      </div>
+
+      <div class="kpi-container-meli" id="meliKpiContainer">
+        <div class="kpi-card-meli"><h3>Total SKU</h3><p id="meliKpiSku">-</p></div>
+        <div class="kpi-card-meli"><h3>Unidades Vendidas</h3><p id="meliKpiUnidades">-</p></div>
+        <div class="kpi-card-meli"><h3>Ventas Totales</h3><p id="meliKpiVentas">-</p></div>
+        <div class="kpi-card-meli"><h3>Ticket Promedio</h3><p id="meliKpiTicket">-</p></div>
+      </div>
+
+      <div class="filtros-meli" id="meliFiltros">
+        <div class="filtro-grupo-meli">
+          <label>Marca:</label>
+          <select id="meliFiltroMarca"><option value="TODAS">Todas</option></select>
+        </div>
+        <div class="filtro-grupo-meli">
+          <label>Departamento:</label>
+          <select id="meliFiltroDepto"><option value="TODOS">Todos</option></select>
+        </div>
+        <div class="filtro-grupo-meli">
+          <label>FULL:</label>
+          <select id="meliFiltroFull">
+            <option value="TODOS">Todos</option>
+            <option value="SI">Sí</option>
+            <option value="NO">No</option>
+          </select>
+        </div>
+        <div class="filtro-grupo-meli">
+          <label>Buscar SKU:</label>
+          <input type="text" id="meliFiltroSKU" placeholder="Ej: UTG..." />
+        </div>
+        <button id="meliBtnAplicarFiltros" class="btn-meli btn-meli-primario">Aplicar Filtros</button>
+      </div>
+
+      <div class="pareto-container-meli" id="meliParetoContainer">
+        <h2>📊 Análisis 80/20 (Pareto)</h2>
+        <div style="display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:8px;">
+          <div class="filtro-grupo-meli">
+            <label>Métrica:</label>
+            <select id="meliParetoMetrica">
+              <option value="unidades">Unidades vendidas</option>
+              <option value="valor">Valor de ventas</option>
+            </select>
+          </div>
+          <button id="meliBtnCalcularPareto" class="btn-meli btn-meli-primario">📊 Calcular Pareto</button>
+        </div>
+        <div id="meliResultadoPareto" style="margin-top:16px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>SKU que generan el 80%</h3><p id="meliPareto80SkuCount">-</p></div>
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>SKU que generan el 20%</h3><p id="meliPareto20SkuCount">-</p></div>
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>Total SKU</h3><p id="meliParetoTotalSku">-</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="chart-box-meli" style="height:280px;"><canvas id="meliChartPareto"></canvas></div>
+            <div class="pareto-table-wrapper-meli">
+              <table>
+                <thead><tr><th>#</th><th>SKU</th><th>Descripción</th><th>Unidades</th><th>Valor</th><th>% Acum.</th></tr></thead>
+                <tbody id="meliCuerpoPareto"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="recomendacion-container-meli" id="meliRecomendacionContainer">
+        <h2>📦 Recomendación para Llenar Bodega</h2>
+        <div style="display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:8px;">
+          <div class="filtro-grupo-meli">
+            <label>Unidades disponibles:</label>
+            <input type="number" id="meliInputUnidadesBodega" value="500" min="1" step="100" style="width:130px;">
+          </div>
+          <div class="filtro-grupo-meli">
+            <label>Días de cobertura:</label>
+            <input type="number" id="meliInputDiasCobertura" value="60" min="1" step="5" style="width:100px;">
+          </div>
+          <div class="filtro-grupo-meli">
+            <label>Días entre ventas (máx):</label>
+            <input type="number" id="meliInputMaxDiasEntreVentas" value="30" min="1" step="5" style="width:80px;">
+          </div>
+          <div class="filtro-grupo-meli">
+            <label>Criterio:</label>
+            <select id="meliBodegaCriterio" style="width:130px;">
+              <option value="unidades">Unidades vendidas</option>
+              <option value="valor">Valor de ventas</option>
+              <option value="balanceado">Balanceado</option>
+            </select>
+          </div>
+          <div class="filtro-grupo-meli">
+            <label>Mín. SKU:</label>
+            <input type="number" id="meliInputMinSKU" value="20" min="1" step="1" style="width:70px;">
+          </div>
+          <button id="meliBtnCalcularBodega" class="btn-meli btn-meli-primario">📦 Calcular Envío</button>
+        </div>
+        <div id="meliResultadoRecomendacion" style="margin-top:16px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>SKU a enviar</h3><p id="meliRecSkuCount">-</p></div>
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>Unidades totales</h3><p id="meliRecTotalUnits">-</p></div>
+            <div class="kpi-card-meli" style="flex:1;min-width:100px;"><h3>Valor estimado</h3><p id="meliRecTotalValue">-</p></div>
+          </div>
+          <div class="rec-table-wrapper-meli">
+            <table>
+              <thead><tr><th>#</th><th>SKU</th><th>Descripción</th><th>Prom. Diario</th><th>Días entre ventas</th><th>📦 A Enviar</th><th>Valor Generado</th></tr></thead>
+              <tbody id="meliCuerpoRecomendacion"></tbody>
+            </table>
+          </div>
+          <div id="meliRecomendacionVacia" class="empty-mini-meli" style="display:none;">⚠️ No hay SKU con la rotación mínima requerida.</div>
+        </div>
+      </div>
+
+      <div class="charts-row-meli">
+        <div class="chart-box-meli"><canvas id="meliChartTendencia"></canvas></div>
+        <div class="chart-box-meli"><canvas id="meliChartTopSKU"></canvas></div>
+      </div>
+      <div class="charts-row-meli">
+        <div class="chart-box-meli"><canvas id="meliChartDepartamento"></canvas></div>
+        <div class="chart-box-meli"><canvas id="meliChartMarca"></canvas></div>
+      </div>
+
+      <div class="tabla-container-meli">
+        <h2>📋 Detalle de Movimientos</h2>
+        <div class="tabla-wrapper-meli">
+          <table>
+            <thead><tr><th>Fecha</th><th>SKU</th><th>Descripción</th><th>Marca</th><th>Departamento</th><th>FULL</th><th>Unidades</th><th>Valor</th></tr></thead>
+            <tbody id="meliCuerpoTabla"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===================== MELI CAPRIS LOGIC ===================== */
+function meliDestroyCharts(){
+  for(const k in meliState.charts){
+    if(meliState.charts[k]) { try { meliState.charts[k].destroy(); } catch(e){} }
+  }
+  meliState.charts = {};
+}
+function meliCreateChart(id, config){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(meliState.charts[id]){ try { meliState.charts[id].destroy(); } catch(e){} }
+  meliState.charts[id] = new Chart(el.getContext('2d'), config);
+}
+
+function meliGetColorMarca(marca){
+  return BRAND_COLORS[marca] || '#8B9099';
+}
+
+async function initMeliCapris(){
+  try { await loadChartJS(); } catch(e){
+    toast('No se pudo cargar Chart.js: ' + e.message, 'error');
+    return;
+  }
+
+  const marcas = [...new Set(meliState.data.map(d => d.marca))].sort();
+  const deptos = [...new Set(meliState.data.map(d => d.departamento))].sort();
+  const selMarca = document.getElementById('meliFiltroMarca');
+  const selDepto = document.getElementById('meliFiltroDepto');
+  if(selMarca) selMarca.innerHTML = '<option value="TODAS">Todas</option>' + marcas.map(m => `<option value="${escapeHTML(m)}">${escapeHTML(m)}</option>`).join('');
+  if(selDepto) selDepto.innerHTML = '<option value="TODOS">Todos</option>' + deptos.map(d => `<option value="${escapeHTML(d)}">${escapeHTML(d)}</option>`).join('');
+
+  const btnFiltros = document.getElementById('meliBtnAplicarFiltros');
+  const btnPareto = document.getElementById('meliBtnCalcularPareto');
+  const btnBodega = document.getElementById('meliBtnCalcularBodega');
+
+  if(btnFiltros) btnFiltros.addEventListener('click', meliAplicarFiltros);
+  if(btnPareto) btnPareto.addEventListener('click', meliCalcularPareto);
+  if(btnBodega) btnBodega.addEventListener('click', meliCalcularRecomendacion);
+
+  meliActualizarDashboard();
+  meliCalcularPareto();
+  meliCalcularRecomendacion();
+}
+
+function meliAplicarFiltros(){
+  const marca = document.getElementById('meliFiltroMarca').value;
+  const depto = document.getElementById('meliFiltroDepto').value;
+  const full = document.getElementById('meliFiltroFull').value;
+  const skuBusqueda = document.getElementById('meliFiltroSKU').value.toLowerCase().trim();
+
+  meliState.filtered = meliState.data.filter(d => {
+    if(marca !== 'TODAS' && d.marca !== marca) return false;
+    if(depto !== 'TODOS' && d.departamento !== depto) return false;
+    if(full !== 'TODOS' && d.full !== full) return false;
+    if(skuBusqueda && !d.sku.toLowerCase().includes(skuBusqueda)) return false;
+    return true;
+  });
+
+  meliActualizarDashboard();
+  meliCalcularPareto();
+  meliCalcularRecomendacion();
+}
+
+function meliActualizarDashboard(){
+  const data = meliState.filtered;
+  const total = data.length;
+  const totalUnidades = data.reduce((s, d) => s + d.unidades, 0);
+  const totalValor = data.reduce((s, d) => s + d.valor, 0);
+  const totalTicket = total > 0 ? totalValor / total : 0;
+
+  document.getElementById('meliKpiSku').textContent = new Set(data.map(d => d.sku)).size;
+  document.getElementById('meliKpiUnidades').textContent = totalUnidades.toLocaleString('es-CO');
+  document.getElementById('meliKpiVentas').textContent = '$ ' + totalValor.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  document.getElementById('meliKpiTicket').textContent = '$ ' + totalTicket.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+
+  meliRenderizarTabla();
+  meliRenderizarTendencia();
+  meliRenderizarTopSKU();
+  meliRenderizarDepartamento();
+  meliRenderizarMarca();
+}
+
+function meliRenderizarTabla(){
+  const tbody = document.getElementById('meliCuerpoTabla');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  const muestra = meliState.filtered.slice(0, 100);
+  muestra.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHTML(d.fecha)}</td>
+      <td><strong>${escapeHTML(d.sku)}</strong></td>
+      <td>${escapeHTML(d.descripcion || '—')}</td>
+      <td>${escapeHTML(d.marca)}</td>
+      <td>${escapeHTML(d.departamento)}</td>
+      <td>${escapeHTML(d.full || '—')}</td>
+      <td>${d.unidades.toLocaleString('es-CO')}</td>
+      <td>$${d.valor.toLocaleString('es-CO')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function meliRenderizarTendencia(){
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!d.fecha) return;
+    if(!agrupado[d.fecha]) agrupado[d.fecha] = 0;
+    agrupado[d.fecha] += d.valor;
+  });
+  const fechas = Object.keys(agrupado).sort();
+  const valores = fechas.map(f => agrupado[f]);
+
+  meliCreateChart('meliChartTendencia', {
+    type: 'line',
+    data: {
+      labels: fechas,
+      datasets: [{
+        label: 'Ventas por Día ($)',
+        data: valores,
+        borderColor: '#D8B25F',
+        backgroundColor: 'rgba(216, 178, 95, 0.15)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8B9099', maxRotation: 45 } },
+        y: { ticks: { color: '#8B9099' } }
+      }
+    }
+  });
+}
+
+function meliRenderizarTopSKU(){
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!agrupado[d.sku]) agrupado[d.sku] = 0;
+    agrupado[d.sku] += d.unidades;
+  });
+  const sorted = Object.entries(agrupado).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const labels = sorted.map(s => s[0]);
+  const data = sorted.map(s => s[1]);
+
+  meliCreateChart('meliChartTopSKU', {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Unidades',
+        data: data,
+        backgroundColor: '#4A90E2'
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8B9099' } },
+        y: { ticks: { color: '#8B9099' } }
+      }
+    }
+  });
+}
+
+function meliRenderizarDepartamento(){
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!agrupado[d.departamento]) agrupado[d.departamento] = 0;
+    agrupado[d.departamento] += d.valor;
+  });
+  const labels = Object.keys(agrupado);
+  const data = Object.values(agrupado);
+
+  meliCreateChart('meliChartDepartamento', {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Ventas ($)',
+        data: data,
+        backgroundColor: '#4FE3B8'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8B9099', maxRotation: 45 } },
+        y: { ticks: { color: '#8B9099' } }
+      }
+    }
+  });
+}
+
+function meliRenderizarMarca(){
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!agrupado[d.marca]) agrupado[d.marca] = 0;
+    agrupado[d.marca] += d.valor;
+  });
+  const labels = Object.keys(agrupado);
+  const data = Object.values(agrupado);
+  const colores = labels.map(m => meliGetColorMarca(m));
+
+  meliCreateChart('meliChartMarca', {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{ data: data, backgroundColor: colores }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#8B9099' } } }
+    }
+  });
+}
+
+function meliCalcularPareto(){
+  const metrica = document.getElementById('meliParetoMetrica').value;
+  if(meliState.filtered.length === 0){
+    document.getElementById('meliPareto80SkuCount').textContent = '0';
+    document.getElementById('meliPareto20SkuCount').textContent = '0';
+    document.getElementById('meliParetoTotalSku').textContent = '0';
+    document.getElementById('meliCuerpoPareto').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#888">Sin datos</td></tr>';
+    return;
+  }
+
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!agrupado[d.sku]){
+      agrupado[d.sku] = {
+        sku: d.sku,
+        descripcion: d.descripcion || d.sku,
+        unidades: 0,
+        valor: 0
+      };
+    }
+    agrupado[d.sku].unidades += d.unidades;
+    agrupado[d.sku].valor += d.valor;
+  });
+
+  const sorted = Object.values(agrupado).sort((a, b) => {
+    return metrica === 'unidades' ? b.unidades - a.unidades : b.valor - a.valor;
+  });
+
+  const totalMetrica = sorted.reduce((sum, item) => sum + (metrica === 'unidades' ? item.unidades : item.valor), 0);
+  let acumulado = 0;
+  let corte80 = 0;
+  const datosPareto = sorted.map((item, index) => {
+    const valor = metrica === 'unidades' ? item.unidades : item.valor;
+    acumulado += valor;
+    const porcentaje = totalMetrica > 0 ? (acumulado / totalMetrica) * 100 : 0;
+    if(porcentaje <= 80) corte80 = index + 1;
+    return { ...item, valorMetrica: valor, porcentajeAcumulado: porcentaje };
+  });
+  if(corte80 === 0) corte80 = sorted.length;
+
+  document.getElementById('meliPareto80SkuCount').textContent = corte80;
+  document.getElementById('meliPareto20SkuCount').textContent = sorted.length - corte80;
+  document.getElementById('meliParetoTotalSku').textContent = sorted.length;
+
+  const tbody = document.getElementById('meliCuerpoPareto');
+  tbody.innerHTML = '';
+  datosPareto.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td><strong>${escapeHTML(item.sku)}</strong></td>
+      <td>${escapeHTML(item.descripcion)}</td>
+      <td>${item.unidades}</td>
+      <td>$${item.valor.toLocaleString('es-CO')}</td>
+      <td>${item.porcentajeAcumulado.toFixed(1)}%</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const labels = datosPareto.map(d => d.sku);
+  const barras = datosPareto.map(d => d.valorMetrica);
+  const linea = datosPareto.map(d => d.porcentajeAcumulado);
+
+  meliCreateChart('meliChartPareto', {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: metrica === 'unidades' ? 'Unidades' : 'Valor ($)',
+          data: barras,
+          backgroundColor: '#4A90E2',
+          order: 1,
+          yAxisID: 'y'
+        },
+        {
+          label: '% Acumulado',
+          data: linea,
+          type: 'line',
+          borderColor: '#E53935',
+          backgroundColor: 'rgba(229, 57, 53, 0.1)',
+          tension: 0.3,
+          pointRadius: 2,
+          fill: true,
+          order: 0,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { color: '#8B9099' } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.dataset.label || '';
+              const val = context.raw;
+              if(context.datasetIndex === 1) return label + ': ' + val.toFixed(1) + '%';
+              return label + ': ' + val.toLocaleString('es-CO');
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8B9099', maxRotation: 60 } },
+        y: {
+          beginAtZero: true,
+          position: 'left',
+          ticks: { color: '#8B9099' },
+          title: { display: true, text: metrica === 'unidades' ? 'Unidades' : 'Valor ($)', color: '#8B9099' }
+        },
+        y1: {
+          beginAtZero: true,
+          position: 'right',
+          max: 100,
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#8B9099' },
+          title: { display: true, text: '% Acumulado', color: '#8B9099' }
+        }
+      }
+    }
+  });
+}
+
+function meliCalcularRecomendacion(){
+  const target = parseInt(document.getElementById('meliInputUnidadesBodega').value) || 500;
+  const diasCobertura = parseInt(document.getElementById('meliInputDiasCobertura').value) || 60;
+  const maxDiasEntreVentas = parseInt(document.getElementById('meliInputMaxDiasEntreVentas').value) || 30;
+  const criterio = document.getElementById('meliBodegaCriterio').value;
+  const minSKU = parseInt(document.getElementById('meliInputMinSKU').value) || 20;
+
+  const tbody = document.getElementById('meliCuerpoRecomendacion');
+  const vacia = document.getElementById('meliRecomendacionVacia');
+
+  if(meliState.filtered.length === 0){
+    if(vacia) vacia.style.display = 'block';
+    if(tbody) tbody.innerHTML = '';
+    document.getElementById('meliRecSkuCount').textContent = '0';
+    document.getElementById('meliRecTotalUnits').textContent = '0';
+    document.getElementById('meliRecTotalValue').textContent = '$ 0';
+    return;
+  }
+
+  const fechas = meliState.filtered.map(d => new Date(d.fecha)).filter(d => !isNaN(d.getTime()));
+  if(fechas.length === 0){
+    if(vacia) vacia.style.display = 'block';
+    if(tbody) tbody.innerHTML = '';
+    return;
+  }
+  const minDate = new Date(Math.min(...fechas));
+  const maxDate = new Date(Math.max(...fechas));
+  const diffTime = Math.abs(maxDate - minDate);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+  const agrupado = {};
+  meliState.filtered.forEach(d => {
+    if(!agrupado[d.sku]){
+      agrupado[d.sku] = {
+        sku: d.sku,
+        descripcion: d.descripcion || d.sku,
+        unidades: 0,
+        valor: 0,
+        dias: new Set(),
+        fechas: []
+      };
+    }
+    agrupado[d.sku].unidades += d.unidades;
+    agrupado[d.sku].valor += d.valor;
+    if(d.fecha){
+      agrupado[d.sku].dias.add(d.fecha);
+      agrupado[d.sku].fechas.push(new Date(d.fecha));
+    }
+  });
+
+  let items = Object.values(agrupado).map(item => {
+    const diasConVentas = item.dias.size;
+    const promedioDiario = diasConVentas > 0 ? item.unidades / diasConVentas : 0;
+    const valorPromedioDiario = diasConVentas > 0 ? item.valor / diasConVentas : 0;
+
+    const fechasOrdenadas = item.fechas.sort((a, b) => a - b);
+    let totalDiasEntre = 0;
+    let conteo = 0;
+    for(let i = 1; i < fechasOrdenadas.length; i++){
+      const diff = (fechasOrdenadas[i] - fechasOrdenadas[i-1]) / (1000 * 60 * 60 * 24);
+      totalDiasEntre += diff;
+      conteo++;
+    }
+    const diasEntreVentas = conteo > 0 ? totalDiasEntre / conteo : Infinity;
+
+    return {
+      ...item,
+      promedioDiario,
+      valorPromedioDiario,
+      diasEntreVentas,
+      frecuencia: diasConVentas / diffDays
+    };
+  });
+
+  items = items.filter(item => item.diasEntreVentas <= maxDiasEntreVentas && item.diasEntreVentas > 0 && isFinite(item.diasEntreVentas));
+
+  if(items.length === 0){
+    if(vacia) vacia.style.display = 'block';
+    if(tbody) tbody.innerHTML = '';
+    document.getElementById('meliRecSkuCount').textContent = '0';
+    document.getElementById('meliRecTotalUnits').textContent = '0';
+    document.getElementById('meliRecTotalValue').textContent = '$ 0';
+    return;
+  }
+
+  items.sort((a, b) => {
+    if(criterio === 'valor') return b.valorPromedioDiario - a.valorPromedioDiario;
+    if(criterio === 'balanceado'){
+      const maxRot = Math.max(...items.map(i => i.frecuencia));
+      const maxVal = Math.max(...items.map(i => i.valorPromedioDiario));
+      const scoreA = (a.frecuencia / maxRot) * 0.5 + (a.valorPromedioDiario / maxVal) * 0.5;
+      const scoreB = (b.frecuencia / maxRot) * 0.5 + (b.valorPromedioDiario / maxVal) * 0.5;
+      return scoreB - scoreA;
+    }
+    return b.promedioDiario - a.promedioDiario;
+  });
+
+  const necesidades = items.map(item => {
+    const need = Math.round(item.promedioDiario * diasCobertura);
+    const maxEnvio = Math.round(item.promedioDiario * diasCobertura * 2);
+    return { ...item, need: Math.max(1, Math.min(need, maxEnvio)) };
+  });
+
+  const totalNeed = necesidades.reduce((sum, n) => sum + n.need, 0);
+  let asignados = [];
+
+  if(totalNeed <= target){
+    asignados = necesidades.map(n => ({ ...n, asignado: n.need }));
+    let sobrante = target - totalNeed;
+    let i = 0;
+    while(sobrante > 0 && i < asignados.length){
+      asignados[i].asignado += 1;
+      sobrante--;
+      i = (i + 1) % asignados.length;
+    }
+  } else {
+    const numSKU = Math.min(items.length, minSKU);
+    const topItems = necesidades.slice(0, numSKU);
+    const totalPeso = topItems.reduce((s, n) => s + n.need, 0);
+    let acum = 0;
+    asignados = topItems.map(n => {
+      let proporcional = Math.round((n.need / totalPeso) * target);
+      if(acum + proporcional > target) proporcional = target - acum;
+      acum += proporcional;
+      return { ...n, asignado: Math.max(1, proporcional) };
+    });
+    let diff = target - acum;
+    if(diff !== 0){
+      for(let i = 0; i < Math.abs(diff) && i < asignados.length; i++){
+        if(diff > 0) asignados[i].asignado += 1;
+        else if(asignados[i].asignado > 1) asignados[i].asignado -= 1;
+      }
+    }
+    asignados = asignados.filter(n => n.asignado > 0);
+  }
+
+  asignados.sort((a, b) => b.asignado - a.asignado);
+
+  if(tbody) tbody.innerHTML = '';
+  let totalSku = 0, totalUnidadesRec = 0, totalValorRec = 0;
+
+  asignados.forEach((item, index) => {
+    totalSku++;
+    totalUnidadesRec += item.asignado;
+    const valorEstimado = item.valorPromedioDiario * item.asignado;
+    totalValorRec += valorEstimado;
+    const diasEntre = item.diasEntreVentas === Infinity ? '∞' : item.diasEntreVentas.toFixed(0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td><strong>${escapeHTML(item.sku)}</strong></td>
+      <td>${escapeHTML(item.descripcion)}</td>
+      <td>${item.promedioDiario.toFixed(1)}</td>
+      <td>${diasEntre}</td>
+      <td style="font-weight:700; color:var(--gold);">${item.asignado}</td>
+      <td>$${Math.round(valorEstimado).toLocaleString('es-CO')}</td>
+    `;
+    if(tbody) tbody.appendChild(tr);
+  });
+
+  document.getElementById('meliRecSkuCount').textContent = totalSku;
+  document.getElementById('meliRecTotalUnits').textContent = totalUnidadesRec.toLocaleString();
+  document.getElementById('meliRecTotalValue').textContent = '$ ' + Math.round(totalValorRec).toLocaleString('es-CO');
+
+  if(vacia) vacia.style.display = asignados.length === 0 ? 'block' : 'none';
+}
+
+/* ===================== RENDER: DATOS ===================== */
+function renderDatos(){
+  const uniqueClientes = new Set(state.ventas.map(r => r.codCliente).filter(Boolean)).size;
+  const uniqueSkus = new Set(state.ventas.map(r => r.sku).filter(Boolean)).size;
+
+  let html = `<div class="data-grid">
+    <div class="stat-block">
+      <h3>Estado actual</h3>
+      <div class="stat-row"><span>Ventas cargadas</span><b>${fmtNum(state.ventas.length)}</b></div>
+      <div class="stat-row"><span>Marcas en catálogo</span><b>${fmtNum(state.marcas.length)}</b></div>
+      <div class="stat-row"><span>Clientes únicos</span><b>${fmtNum(uniqueClientes)}</b></div>
+      <div class="stat-row"><span>SKUs únicos</span><b>${fmtNum(uniqueSkus)}</b></div>
+      <div class="stat-row"><span>Archivo fuente</span><b>${escapeHTML(state.fileName || '—')}</b></div>
+      <div class="stat-row"><span>Cargado el</span><b>${state.loadedAt ? new Date(state.loadedAt).toLocaleString('es-CO') : '—'}</b></div>
+      <div class="stat-row"><span>Última importación</span><b>${state.lastImport ? new Date(state.lastImport).toLocaleString('es-CO') : '—'}</b></div>
+    </div>
+    <div class="stat-block">
+      <h3>Acciones</h3>
+      <div class="stat-actions">
+        <button class="btn btn-primary" data-action="download-template">⬇ Descargar plantilla</button>
+        <button class="btn btn-ghost" data-action="export-csv" ${!state.ventas.length ? 'disabled style="opacity:.5"' : ''}>⬇ Exportar ventas CSV</button>
+        <button class="btn btn-danger" data-action="clear-data" ${!state.ventas.length ? 'disabled style="opacity:.5"' : ''}>🗑 Borrar todos los datos</button>
+      </div>
+      <div class="storage-note">💾 Los datos se guardan en <code>localStorage</code> clave <code>"${STORAGE_KEY}"</code></div>
+    </div>
+  </div>`;
+
+  html += `<div class="stat-block">
+    <h3>Columnas esperadas</h3>
+    <div class="columns-tabs">
+      <button class="tab-btn ${ui.datosTab === 'VENTAS' ? 'active' : ''}" data-tab="VENTAS">VENTAS (${VENTAS_HEADERS.length})</button>
+      <button class="tab-btn ${ui.datosTab === 'MARCAS' ? 'active' : ''}" data-tab="MARCAS">MARCAS (3)</button>
+    </div>
+    <div class="columns-list">`;
+  if(ui.datosTab === 'VENTAS'){
+    for(const h of VENTAS_HEADERS) html += `<span class="col-chip">${escapeHTML(h)}</span>`;
+  } else {
+    for(const h of ['NA','BRAND','REFE']) html += `<span class="col-chip">${escapeHTML(h)}</span>`;
+  }
+  html += `</div></div>`;
+
+  return html;
+}
+
+/* ===================== MAIN RENDER ===================== */
+function render(){
+  const titles = {
+    import:'Importar Datos', dashboard:'Dashboard', pareto:'Análisis 80/20',
+    ventas:'Ventas', clientes:'Clientes', productos:'Productos',
+    reportes:'Reportes', melicapris:'MELI CAPRIS · Análisis de SKU',
+    datos:'Gestión de Datos'
+  };
+  document.getElementById('view-title').textContent = titles[ui.view] || '';
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === ui.view);
+  });
+  const badge = document.getElementById('status-badge');
+  if(state.ventas.length){
+    badge.textContent = `${state.ventas.length.toLocaleString('es-CO')} filas`;
+    badge.className = 'status-badge ok';
+  } else {
+    badge.textContent = 'Sin datos';
+    badge.className = 'status-badge empty';
+  }
+
+  // Sync global date inputs
+  const gf = document.getElementById('globalFrom');
+  const gt = document.getElementById('globalTo');
+  if(gf) gf.value = ui.globalFrom;
+  if(gt) gt.value = ui.globalTo;
+
+  // Destroy meli charts when leaving the view
+  if(ui.view !== 'melicapris') meliDestroyCharts();
+
+  const view = document.getElementById('view');
+  let content = '';
+  switch(ui.view){
+    case 'import': content = renderImport(); break;
+    case 'dashboard': content = renderDashboard(); break;
+    case 'pareto': content = renderPareto(); break;
+    case 'ventas': content = renderVentas(); break;
+    case 'clientes': content = renderClientes(); break;
+    case 'productos': content = renderProductos(); break;
+    case 'reportes': content = renderReportes(); break;
+    case 'melicapris': content = renderMeliCapris(); break;
+    case 'datos': content = renderDatos(); break;
+  }
+  view.innerHTML = content;
+  view.classList.remove('fade');
+  void view.offsetWidth;
+  view.classList.add('fade');
+
+  attachDynamicListeners();
+
+  if(ui.view === 'melicapris') initMeliCapris();
+}
+
+function attachDynamicListeners(){
+  const dz = document.getElementById('drop-zone');
+  if(dz){
+    dz.addEventListener('click', () => document.getElementById('file-input').click());
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) handleFile(f);
+    });
+  }
+}
+
+/* ===================== FILE HANDLER ===================== */
+async function handleFile(file){
+  try {
+    toast('Procesando archivo…');
+    const result = await parseFile(file);
+    ui.preview = result;
+    ui.importMode = state.ventas.length ? 'append' : 'replace';
+    ui.view = 'import';
+    render();
+    toast(`Archivo leído: ${result.validCount} filas válidas`, 'success');
+  } catch(err){
+    console.error(err);
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+/* ===================== ACTIONS ===================== */
+function confirmImport(){
+  const p = ui.preview;
+  if(!p) return;
+  const now = Date.now();
+  if(ui.importMode === 'append' && state.ventas.length){
+    const existingKeys = new Set(state.ventas.map(rowKey));
+    const add = p.toImport.filter(r => !existingKeys.has(rowKey(r)));
+    state.ventas = state.ventas.concat(add);
+    if(p.catalog.length){
+      const seen = new Set(state.marcas.map(m => (m.REFE||'').toUpperCase()));
+      for(const m of p.catalog) if(!seen.has((m.REFE||'').toUpperCase())) state.marcas.push(m);
+    }
+    toast(`✓ ${add.length} filas agregadas al dataset existente`, 'success');
+  } else {
+    state.ventas = p.toImport.slice();
+    state.marcas = p.catalog.slice();
+    toast(`✓ ${state.ventas.length} filas importadas`, 'success');
+  }
+  state.brandMap = buildBrandMap(state.marcas);
+  state.nameMap = buildNameMap(state.marcas);
+  state.fileName = p.fileName;
+  state.loadedAt = new Date(now).toISOString();
+  state.lastImport = new Date(now).toISOString();
+  saveState();
+  ui.preview = null;
+  ui.importMode = 'replace';
+  ui.view = state.ventas.length ? 'dashboard' : 'import';
+  render();
+}
+
+function downloadTemplate(){
+  loadSheetJS().then(XLSX => {
+    try {
+      const wb = XLSX.utils.book_new();
+      const marcasData = state.marcas.length
+        ? state.marcas.map(m => ({ NA: m.NA || '', BRAND: m.BRAND || '', REFE: m.REFE || '' }))
+        : [
+          { NA:'TOTAL TOOLS UTG513326 COMBO TALADRO+ESMERILADORA', BRAND:'TOTAL', REFE:'UTG513326' },
+          { NA:'DCK KSM03-230 ESMERILADORA ANGULAR 9"', BRAND:'DCK', REFE:'KSM03-230(110V)' },
+          { NA:'JASIC ARC200DC SOLDADORA INVERSORA', BRAND:'JASIC', REFE:'ARC200DC (Z262)' }
+        ];
+      const wsM = XLSX.utils.json_to_sheet(marcasData, { header: ['NA','BRAND','REFE'] });
+      XLSX.utils.book_append_sheet(wb, wsM, 'MARCAS');
+
+      const example = {
+        'COD':'A1L','FECHA CORTE':'2026-01-05','CORTE':'09:00:00','FECHA':'2026-01-01',
+        'COD. CLIENTE':'1020590','NOMBRE CLIENTE':'German Tulio Fernandez','TIPO ID':'CC',
+        'NO. ID':'15258730','DIRECCIÓN':'Carrera 89 #92 C-119','DEPARTAMENTO':'Antioquia',
+        'ESTADO':'APROBADO','FACTURA':'GX10712','FULL':'SI','NO. PED':'11192','PROD. SKU':'UTG513326',
+        'UND':1,'VALOR':131400,'FLETE':7600,'% FLETE':0.0578,'COMISION':22338,'% COMISION':0.17,
+        'PRECIO B/I':110420,'RETE IVA (15%)':0,'RETEFUENTE':0,'PRECIO FINAL':101462,'Observaciones':''
+      };
+      const wsV = XLSX.utils.json_to_sheet([example], { header: VENTAS_HEADERS });
+      XLSX.utils.book_append_sheet(wb, wsV, 'VENTAS');
+
+      const date = new Date().toISOString().slice(0,10);
+      XLSX.writeFile(wb, `Plantilla_Ventas_${date}.xlsx`);
+      toast('Plantilla descargada', 'success');
+    } catch(e){
+      toast('Error generando plantilla: ' + e.message, 'error');
+    }
+  }).catch(err => toast('Error: ' + err.message, 'error'));
+}
+
+function exportCSV(){
+  if(!state.ventas.length) return;
+  const lines = [VENTAS_HEADERS.join(',')];
+  for(const r of state.ventas){
+    const vals = [
+      r.cod, r.fechaCorte, r.corte, r.fecha, r.codCliente, r.nombreCliente,
+      r.tipoId, r.noId, r.direccion, r.depto, r.estado, r.factura,
+      r.full, r.noPed, r.sku, r.und, r.valor, r.flete, r.pctFlete,
+      r.comision, r.pctComision, r.precioBI, r.reteIva, r.reteFuente,
+      r.precioFinal, r.observaciones
+    ];
+    lines.push(vals.map(v => {
+      const s = String(v == null ? '' : v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(','));
+  }
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type:'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Ventas_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado', 'success');
+}
+
+function clearAll(){
+  if(!confirm('¿Borrar todos los datos cargados? Esta acción no se puede deshacer.')) return;
+  state.ventas = [];
+  state.marcas = [];
+  state.brandMap = {};
+  state.nameMap = {};
+  state.fileName = '';
+  state.loadedAt = null;
+  state.lastImport = null;
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+  ui.preview = null;
+  ui.view = 'import';
+  render();
+  toast('Datos borrados', 'success');
+}
+
+/* ===================== EVENT HANDLING ===================== */
+document.getElementById('nav').addEventListener('click', (e) => {
+  const item = e.target.closest('.nav-item');
+  if(!item) return;
+  ui.view = item.dataset.view;
+  render();
+});
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if(f) handleFile(f);
+  e.target.value = '';
+});
+
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch(e){}
+  document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
+});
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if(btn){
+    const a = btn.dataset.action;
+    if(a === 'go-import'){ ui.view = 'import'; render(); }
+    else if(a === 'confirm-import') confirmImport();
+    else if(a === 'cancel-import'){ ui.preview = null; render(); }
+    else if(a === 'download-template') downloadTemplate();
+    else if(a === 'export-csv') exportCSV();
+    else if(a === 'clear-data') clearAll();
+    else if(a === 'dev-clear'){ ui.devFrom = ''; ui.devTo = ''; updateViewContent(); }
+    else if(a === 'global-clear'){ ui.globalFrom = ''; ui.globalTo = ''; render(); }
+    else if(a === 'pareto-preset'){
+      const p = btn.dataset.preset;
+      if(p === 'all'){ ui.paretoFrom = ''; ui.paretoTo = ''; }
+      else {
+        const today = new Date();
+        const iso = today.toISOString().slice(0,10);
+        let from = '';
+        if(p === '30d') from = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+        else if(p === '90d') from = new Date(Date.now() - 90*86400000).toISOString().slice(0,10);
+        else if(p === 'ytd') from = today.getFullYear() + '-01-01';
+        ui.paretoFrom = from;
+        ui.paretoTo = iso;
+      }
+      updateViewContent();
+    }
+  }
+  const pageBtn = e.target.closest('[data-page]');
+  if(pageBtn && !pageBtn.disabled){
+    const page = +pageBtn.dataset.page;
+    const ctx = pageBtn.dataset.ctx;
+    if(ctx === 'ventas'){
+      ui.ventasPage = page;
+      const el = document.getElementById('ventas-content');
+      if(el){ el.innerHTML = renderVentasContent(); attachDynamicListeners(); }
+      else render();
+    }
+  }
+  const tabBtn = e.target.closest('[data-tab]');
+  if(tabBtn){
+    ui.datosTab = tabBtn.dataset.tab;
+    render();
+  }
+});
+
+document.addEventListener('input', (e) => {
+  const f = e.target.dataset.filter;
+  if(!f) return;
+  const val = e.target.value;
+  if(f === 'ventas-search'){ ui.ventasSearch = val; ui.ventasPage = 1; updateVentasContent(); }
+  else if(f === 'clientes-search'){ ui.clientesSearch = val; updateViewContent(); }
+  else if(f === 'productos-search'){ ui.productosSearch = val; updateViewContent(); }
+});
+
+document.addEventListener('change', (e) => {
+  const f = e.target.dataset.filter;
+  if(!f) return;
+  const val = e.target.value;
+  if(f === 'ventas-brand'){ ui.ventasBrand = val; ui.ventasPage = 1; updateVentasContent(); }
+  else if(f === 'ventas-depto'){ ui.ventasDepto = val; ui.ventasPage = 1; updateVentasContent(); }
+  else if(f === 'ventas-full'){ ui.ventasFull = val; ui.ventasPage = 1; updateVentasContent(); }
+  else if(f === 'productos-brand'){ ui.productosBrand = val; updateViewContent(); }
+  else if(f === 'pareto-from'){ ui.paretoFrom = val; updateViewContent(); }
+  else if(f === 'pareto-to'){   ui.paretoTo   = val; updateViewContent(); }
+  else if(f === 'dev-from'){ ui.devFrom = val; updateViewContent(); }
+  else if(f === 'dev-to'){   ui.devTo   = val; updateViewContent(); }
+  else if(f === 'global-from'){ ui.globalFrom = val; render(); }
+  else if(f === 'global-to'){   ui.globalTo   = val; render(); }
+  else if(e.target.name === 'import-mode'){ ui.importMode = val; }
+});
+
+function updateVentasContent(){
+  const el = document.getElementById('ventas-content');
+  if(!el) return;
+  el.innerHTML = renderVentasContent();
+  el.classList.remove('fade');
+  void el.offsetWidth;
+  el.classList.add('fade');
+  attachDynamicListeners();
+}
+
+function updateViewContent(){
+  const active = document.activeElement;
+  const filter = active && active.dataset ? active.dataset.filter : null;
+  const selStart = active && active.selectionStart;
+  const selEnd = active && active.selectionEnd;
+  render();
+  if(filter){
+    const newEl = document.querySelector(`[data-filter="${filter}"]`);
+    if(newEl){
+      newEl.focus();
+      if(newEl.setSelectionRange && selStart != null) newEl.setSelectionRange(selStart, selEnd);
+    }
+  }
+}
+
+/* ===================== INIT ===================== */
+function init(){
+  loadState();
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  document.getElementById('theme-toggle').textContent = cur === 'dark' ? '🌙' : '☀️';
+  if(state.ventas.length) ui.view = 'dashboard';
+  render();
+}
+init();
+
+})();
+</script>
+</body>
+</html>
